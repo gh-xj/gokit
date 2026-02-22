@@ -14,6 +14,9 @@ Shared Go CLI helpers for personal projects. Single flat package — no sub-pack
 | `args.go` | `ParseArgs`, `RequireArg`, `GetArg`, `HasFlag` — `--key value` CLI parsing |
 | `exec.go` | `RunCommand`, `RunOsascript`, `Which`, `CheckDependency` — command execution |
 | `fs.go` | `FileExists`, `EnsureDir`, `GetBaseName` — filesystem helpers |
+| `core_context.go` | `AppContext`, `NewAppContext` — shared runtime context |
+| `lifecycle.go` | `Hook`, `RunLifecycle` — preflight/run/postflight orchestration |
+| `errors.go` | `CLIError`, `ResolveExitCode` — typed error and exit mapping |
 
 ## Rules
 

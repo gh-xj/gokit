@@ -48,3 +48,7 @@ func main() {
 | fs | `FileExists(path) bool` | Path existence check |
 | fs | `EnsureDir(dir) error` | Create directory tree |
 | fs | `GetBaseName(path) string` | Filename without extension |
+| core | `NewAppContext(ctx) *AppContext` | Shared runtime context with logger/io defaults |
+| core | `RunLifecycle(app, hook, run) error` | Standardized preflight/run/postflight flow |
+| core | `NewCLIError(code, kind, message, cause)` | Typed CLI error with deterministic exit code |
+| core | `ResolveExitCode(err) int` | Map errors to process exit codes |

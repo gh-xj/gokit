@@ -1,0 +1,48 @@
+version: "3"
+
+tasks:
+  fmt:
+    desc: Format Go files
+    cmds:
+      - gofmt -w *.go
+
+  fmt:check:
+    desc: Fail when gofmt would change files
+    cmds:
+      - test -z "$(gofmt -l *.go)"
+
+  lint:
+    desc: Run static checks
+    deps: [fmt:check]
+    cmds:
+      - go vet ./...
+
+  test:
+    desc: Run unit tests
+    deps: [fmt:check]
+    cmds:
+      - go test ./...
+
+  build:
+    desc: Ensure package builds
+    deps: [fmt:check]
+    cmds:
+      - go build ./...
+
+  smoke:
+    desc: Run deterministic smoke checks
+    deps: [fmt:check]
+    cmds:
+      - go test ./... -run 'Test(ParseArgsBasic|RunCommandSuccess|RunLifecycleOrder|ResolveExitCode)$'
+
+  ci:
+    desc: Canonical CI contract command
+    deps: [lint, test, build, smoke]
+    cmds:
+      - echo "ci checks passed"
+
+  verify:
+    desc: Local aggregate verification
+    deps: [ci]
+    cmds:
+      - echo "verify checks passed"
