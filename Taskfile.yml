@@ -4,12 +4,12 @@ tasks:
   fmt:
     desc: Format Go files
     cmds:
-      - gofmt -w *.go
+      - gofmt -w $(find . -name '*.go' -type f)
 
   fmt:check:
     desc: Fail when gofmt would change files
     cmds:
-      - test -z "$(gofmt -l *.go)"
+      - test -z "$(gofmt -l $(find . -name '*.go' -type f))"
 
   lint:
     desc: Run static checks

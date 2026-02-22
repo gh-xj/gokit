@@ -52,3 +52,13 @@ func main() {
 | core | `RunLifecycle(app, hook, run) error` | Standardized preflight/run/postflight flow |
 | core | `NewCLIError(code, kind, message, cause)` | Typed CLI error with deterministic exit code |
 | core | `ResolveExitCode(err) int` | Map errors to process exit codes |
+
+## Scaffold CLI (Phase 1)
+
+Use the scaffold CLI to generate and validate golden-layout projects:
+
+```bash
+go run ./cmd/gokit new --module example.com/mycli mycli
+go run ./cmd/gokit add command --dir ./mycli sync-data
+go run ./cmd/gokit doctor --dir ./mycli --json
+```

@@ -17,6 +17,8 @@ Shared Go CLI helpers for personal projects. Single flat package — no sub-pack
 | `core_context.go` | `AppContext`, `NewAppContext` — shared runtime context |
 | `lifecycle.go` | `Hook`, `RunLifecycle` — preflight/run/postflight orchestration |
 | `errors.go` | `CLIError`, `ResolveExitCode` — typed error and exit mapping |
+| `scaffold.go` | `ScaffoldNew`, `ScaffoldAddCommand`, `Doctor` — golden project scaffolding and compliance checks |
+| `cmd/gokit/main.go` | `gokit` scaffold CLI entrypoint (`new`, `add command`, `doctor`) |
 
 ## Rules
 
