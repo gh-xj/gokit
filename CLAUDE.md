@@ -1,6 +1,6 @@
 # gokit
 
-Shared Go CLI helpers for personal projects. Single flat package — no sub-packages.
+Shared Go CLI helpers and framework modules for personal projects.
 
 ## Module
 
@@ -19,6 +19,8 @@ Shared Go CLI helpers for personal projects. Single flat package — no sub-pack
 | `errors.go` | `CLIError`, `ResolveExitCode` — typed error and exit mapping |
 | `scaffold.go` | `ScaffoldNew`, `ScaffoldAddCommand`, `Doctor` — golden project scaffolding and compliance checks |
 | `cmd/gokit/main.go` | `gokit` scaffold CLI entrypoint (`new`, `add command`, `doctor`) |
+| `cobrax/cobrax.go` | Cobra runtime adapter with standardized persistent flags and exit-code mapping |
+| `configx/configx.go` | Deterministic config loading with precedence (`Defaults < File < Env < Flags`) |
 | `internal/tools/schemacheck/main.go` | JSON contract validator for schema-based CI checks |
 | `schemas/*.schema.json` | Versioned JSON contracts for framework outputs |
 
@@ -33,7 +35,8 @@ Shared Go CLI helpers for personal projects. Single flat package — no sub-pack
 ### Dependencies
 - `github.com/rs/zerolog` — structured logging
 - `github.com/samber/lo` — verbose flag detection via `lo.Contains`
-- No other dependencies. Keep the dep tree small.
+- `github.com/spf13/cobra` — standardized command runtime in `cobrax`
+- Keep dependencies minimal and justified.
 
 ### Adding Functions
 - Only add helpers that are duplicated across 2+ CLI projects

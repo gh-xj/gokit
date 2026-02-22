@@ -71,3 +71,8 @@ This repo also enforces framework JSON contracts in CI:
 - schemas: `schemas/doctor-report.schema.json`, `schemas/scaffold-version-output.schema.json`
 - fixtures: `testdata/contracts/*.ok.json`, `testdata/contracts/*.bad-*.json`
 - gates: `task schema:check` and `task schema:negative` (both included in `task ci`)
+
+## Runtime Modules (Phase 2)
+
+- `cobrax`: standardized Cobra root/flags/exit-code execution wrapper
+- `configx`: deterministic config merge (`Defaults < File < Env < Flags`)
