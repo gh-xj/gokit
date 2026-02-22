@@ -62,3 +62,10 @@ tasks:
     deps: [ci]
     cmds:
       - echo "verify checks passed"
+
+  release:prep:
+    desc: Release readiness gate (clean tree + full ci)
+    deps: [ci]
+    cmds:
+      - test -z "$(git status --porcelain)"
+      - echo "release prep passed"
