@@ -4,76 +4,106 @@ Deterministic Go CLI framework for human + AI-agent teams.
 
 Scaffold fast, verify by contract, ship with confidence.
 
-## Why agentcli-go
+## Installation
 
-Most CLI projects start fast and drift later.
-`agentcli-go` is built to prevent that drift from day one.
+### Stable Release (Recommended)
 
-- Deterministic scaffolding for every new CLI
-- Stable machine-readable checks (`doctor --json`)
-- Schema-validated smoke artifacts
-- CI gates that catch regressions early (including negative checks)
-- Go compile-time safety instead of script-time surprises
+Install the scaffold CLI:
 
-## 60-Second Quickstart
+```bash
+go install github.com/gh-xj/agentcli-go/cmd/agentcli@v0.2.0
+```
+
+Add the framework library to your Go project:
+
+```bash
+go get github.com/gh-xj/agentcli-go@v0.2.0
+```
+
+### Development Version
+
+If you want the latest unreleased changes from `main`:
+
+```bash
+go install github.com/gh-xj/agentcli-go/cmd/agentcli@main
+go get github.com/gh-xj/agentcli-go@main
+```
+
+Note: `main` may include in-progress changes. Use it for early testing.
+
+### Requirements
+
+- Go 1.25+
+- `task` (recommended for verification workflow)
+
+## Quickstart
 
 Generate a new CLI project:
 
 ```bash
-go run ./cmd/agentcli new --module example.com/mycli mycli
+agentcli new --module example.com/mycli mycli
 ```
 
 Add a command:
 
 ```bash
-go run ./cmd/agentcli add command --dir ./mycli sync-data
+agentcli add command --dir ./mycli sync-data
 ```
 
 Run health checks:
 
 ```bash
-go run ./cmd/agentcli doctor --dir ./mycli --json
+agentcli doctor --dir ./mycli --json
 ```
 
-Run project verification:
+Run full project verification:
 
 ```bash
 cd mycli
 task verify
 ```
 
-## AI-Agent Onboarding
+## Why agentcli-go
 
-If you are using coding agents, this framework gives them explicit contracts to follow.
+Most CLI projects start fast and drift later.
+`agentcli-go` is built to prevent that drift from day one.
+
+- deterministic scaffolding for every new CLI
+- machine-readable health checks (`doctor --json`)
+- schema-validated smoke outputs
+- CI gates with positive + negative regression checks
+- Go compile-time safety for agent-generated changes
+
+## AI-Agent Onboarding
 
 Recommended agent workflow:
 
-1. `agentcli new` to initialize a contract-compliant baseline.
-2. `agentcli add command` for feature growth.
-3. `agentcli doctor --json` before and after changes.
-4. `task ci` as the canonical pass/fail gate.
+1. Run `agentcli new` for a contract-compliant baseline.
+2. Use `agentcli add command` for feature growth.
+3. Run `agentcli doctor --json` before/after edits.
+4. Enforce `task ci` as the canonical pass/fail gate.
 
-Why this works well for agents:
+Why this works for agents:
 
-- predictable file layout
-- deterministic command output paths
+- predictable layout
+- deterministic output paths
 - schema-backed JSON outputs
-- low ambiguity in verification steps
+- low-ambiguity verification contract
 
 ## What You Get
 
-### 1) Scaffold CLI
+### Scaffold CLI
 
 - `agentcli new`
 - `agentcli add command`
 - `agentcli doctor --json`
 
-### 2) Runtime Modules
+### Runtime Modules
 
 - `cobrax`: standardized Cobra root flags + deterministic exit-code handling
-- `configx`: deterministic config merge order (`Defaults < File < Env < Flags`)
+- `configx`: deterministic config merge (`Defaults < File < Env < Flags`)
 
-### 3) Core Helpers
+### Core Helpers
 
 - logging: `InitLogger()`
 - args: `ParseArgs`, `RequireArg`, `GetArg`, `HasFlag`
@@ -86,9 +116,9 @@ Why this works well for agents:
 Each generated project includes:
 
 - fixed scaffold layout
-- deterministic smoke artifact at `test/smoke/version.output.json`
-- schema file at `test/smoke/version.schema.json`
-- canonical task gates (`fmt`, `lint`, `test`, `build`, `smoke`, `ci`, `verify`)
+- deterministic smoke artifact: `test/smoke/version.output.json`
+- schema file: `test/smoke/version.schema.json`
+- canonical task gates: `fmt`, `lint`, `test`, `build`, `smoke`, `ci`, `verify`
 
 Example structure:
 
@@ -118,43 +148,30 @@ This repository enforces JSON output contracts in CI.
 - negative fixtures: `testdata/contracts/*.bad-*.json`
 - gates: `task schema:check`, `task schema:negative` (both part of `task ci`)
 
-## Install as a Library
-
-```bash
-go get github.com/gh-xj/agentcli-go@latest
-```
-
-Example usage:
+## Minimal Library Example
 
 ```go
 package main
 
 import (
-    agentcli "github.com/gh-xj/agentcli-go"
-    "github.com/rs/zerolog/log"
+	agentcli "github.com/gh-xj/agentcli-go"
+	"github.com/rs/zerolog/log"
 )
 
 func main() {
-    agentcli.InitLogger()
-    args := agentcli.ParseArgs([]string{"--src", "/tmp/in"})
-    src := agentcli.RequireArg(args, "src", "source directory")
-    log.Info().Str("src", src).Msg("ready")
+	agentcli.InitLogger()
+	args := agentcli.ParseArgs([]string{"--src", "/tmp/in"})
+	src := agentcli.RequireArg(args, "src", "source directory")
+	log.Info().Str("src", src).Msg("ready")
 }
 ```
-
-## Design Principles
-
-- Determinism over convenience
-- Contracts over conventions
-- Explicit verification over implicit correctness
-- Agent-friendly interfaces without sacrificing human ergonomics
 
 ## Contributing
 
 Issues and PRs are welcome.
 
-When contributing:
+Before opening a PR:
 
 1. Keep scaffold/runtime contracts deterministic.
-2. Add or update schema fixtures when output contracts change.
-3. Run `task ci` before opening PRs.
+2. Update schema fixtures when output contracts change.
+3. Run `task ci`.
