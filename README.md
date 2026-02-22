@@ -1,82 +1,160 @@
 # agentcli-go
 
-Shared Go CLI helpers for personal projects. Eliminates copy-pasting `initLogger`, `parseArgs`, `fileExists`, etc. across CLIs.
+Deterministic Go CLI framework for human + AI-agent teams.
 
-## Install
+Scaffold fast, verify by contract, ship with confidence.
+
+## Why agentcli-go
+
+Most CLI projects start fast and drift later.
+`agentcli-go` is built to prevent that drift from day one.
+
+- Deterministic scaffolding for every new CLI
+- Stable machine-readable checks (`doctor --json`)
+- Schema-validated smoke artifacts
+- CI gates that catch regressions early (including negative checks)
+- Go compile-time safety instead of script-time surprises
+
+## 60-Second Quickstart
+
+Generate a new CLI project:
+
+```bash
+go run ./cmd/agentcli new --module example.com/mycli mycli
+```
+
+Add a command:
+
+```bash
+go run ./cmd/agentcli add command --dir ./mycli sync-data
+```
+
+Run health checks:
+
+```bash
+go run ./cmd/agentcli doctor --dir ./mycli --json
+```
+
+Run project verification:
+
+```bash
+cd mycli
+task verify
+```
+
+## AI-Agent Onboarding
+
+If you are using coding agents, this framework gives them explicit contracts to follow.
+
+Recommended agent workflow:
+
+1. `agentcli new` to initialize a contract-compliant baseline.
+2. `agentcli add command` for feature growth.
+3. `agentcli doctor --json` before and after changes.
+4. `task ci` as the canonical pass/fail gate.
+
+Why this works well for agents:
+
+- predictable file layout
+- deterministic command output paths
+- schema-backed JSON outputs
+- low ambiguity in verification steps
+
+## What You Get
+
+### 1) Scaffold CLI
+
+- `agentcli new`
+- `agentcli add command`
+- `agentcli doctor --json`
+
+### 2) Runtime Modules
+
+- `cobrax`: standardized Cobra root flags + deterministic exit-code handling
+- `configx`: deterministic config merge order (`Defaults < File < Env < Flags`)
+
+### 3) Core Helpers
+
+- logging: `InitLogger()`
+- args: `ParseArgs`, `RequireArg`, `GetArg`, `HasFlag`
+- exec: `RunCommand`, `RunOsascript`, `Which`, `CheckDependency`
+- fs: `FileExists`, `EnsureDir`, `GetBaseName`
+- runtime contracts: `NewAppContext`, `RunLifecycle`, `NewCLIError`, `ResolveExitCode`
+
+## Generated Project Contract
+
+Each generated project includes:
+
+- fixed scaffold layout
+- deterministic smoke artifact at `test/smoke/version.output.json`
+- schema file at `test/smoke/version.schema.json`
+- canonical task gates (`fmt`, `lint`, `test`, `build`, `smoke`, `ci`, `verify`)
+
+Example structure:
+
+```text
+mycli/
+  cmd/
+    root.go
+    <command>.go
+  internal/
+    app/
+    config/
+    io/
+    tools/smokecheck/
+  pkg/version/
+  test/e2e/
+  test/smoke/
+  Taskfile.yml
+  main.go
+```
+
+## Verification Model
+
+This repository enforces JSON output contracts in CI.
+
+- schemas: `schemas/doctor-report.schema.json`, `schemas/scaffold-version-output.schema.json`
+- positive fixtures: `testdata/contracts/*.ok.json`
+- negative fixtures: `testdata/contracts/*.bad-*.json`
+- gates: `task schema:check`, `task schema:negative` (both part of `task ci`)
+
+## Install as a Library
 
 ```bash
 go get github.com/gh-xj/agentcli-go@latest
 ```
 
-## Usage
+Example usage:
 
 ```go
 package main
 
 import (
-    "github.com/gh-xj/agentcli-go"
+    agentcli "github.com/gh-xj/agentcli-go"
     "github.com/rs/zerolog/log"
 )
 
 func main() {
-    agentcli.InitLogger() // reads -v/--verbose from os.Args
-
-    args := agentcli.ParseArgs(os.Args[1:])
+    agentcli.InitLogger()
+    args := agentcli.ParseArgs([]string{"--src", "/tmp/in"})
     src := agentcli.RequireArg(args, "src", "source directory")
-    dest := agentcli.GetArg(args, "dest", "/tmp")
-
-    agentcli.CheckDependency("rsync", "brew install rsync")
-    agentcli.EnsureDir(dest)
-
-    log.Info().Str("src", src).Str("dest", dest).Msg("ready")
+    log.Info().Str("src", src).Msg("ready")
 }
 ```
 
-## API
+## Design Principles
 
-| Package | Function | Description |
-|---------|----------|-------------|
-| log | `InitLogger()` | zerolog setup with `-v`/`--verbose` support |
-| args | `ParseArgs(args) map` | `--key value` parser |
-| args | `RequireArg(args, key, usage) string` | Required flag or fatal |
-| args | `GetArg(args, key, default) string` | Optional flag with default |
-| args | `HasFlag(args, key) bool` | Boolean flag check |
-| exec | `RunCommand(name, args...) (string, error)` | Run command, capture stdout |
-| exec | `RunOsascript(script) string` | Execute AppleScript |
-| exec | `Which(cmd) bool` | Check if command exists |
-| exec | `CheckDependency(name, hint)` | Fatal if command missing |
-| fs | `FileExists(path) bool` | Path existence check |
-| fs | `EnsureDir(dir) error` | Create directory tree |
-| fs | `GetBaseName(path) string` | Filename without extension |
-| core | `NewAppContext(ctx) *AppContext` | Shared runtime context with logger/io defaults |
-| core | `RunLifecycle(app, hook, run) error` | Standardized preflight/run/postflight flow |
-| core | `NewCLIError(code, kind, message, cause)` | Typed CLI error with deterministic exit code |
-| core | `ResolveExitCode(err) int` | Map errors to process exit codes |
+- Determinism over convenience
+- Contracts over conventions
+- Explicit verification over implicit correctness
+- Agent-friendly interfaces without sacrificing human ergonomics
 
-## Scaffold CLI (Phase 1)
+## Contributing
 
-Use the scaffold CLI to generate and validate golden-layout projects:
+Issues and PRs are welcome.
 
-```bash
-go run ./cmd/agentcli new --module example.com/mycli mycli
-go run ./cmd/agentcli add command --dir ./mycli sync-data
-go run ./cmd/agentcli doctor --dir ./mycli --json
-```
+When contributing:
 
-Scaffold runtime is now `cobrax`-only.
-During local development (before a tagged release is available), generated `go.mod`
-automatically includes a local `replace github.com/gh-xj/agentcli-go => <detected-path>` when possible.
-
-Generated projects include a deterministic smoke artifact contract:
-- writes `test/smoke/version.output.json`
-- validates output against `test/smoke/version.schema.json`
-
-This repo also enforces framework JSON contracts in CI:
-- schemas: `schemas/doctor-report.schema.json`, `schemas/scaffold-version-output.schema.json`
-- fixtures: `testdata/contracts/*.ok.json`, `testdata/contracts/*.bad-*.json`
-- gates: `task schema:check` and `task schema:negative` (both included in `task ci`)
-
-## Runtime Modules (Phase 2)
-
-- `cobrax`: standardized Cobra root/flags/exit-code execution wrapper
-- `configx`: deterministic config merge (`Defaults < File < Env < Flags`)
+1. Keep scaffold/runtime contracts deterministic.
+2. Add or update schema fixtures when output contracts change.
+3. Run `task ci` before opening PRs.
