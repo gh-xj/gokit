@@ -4,6 +4,15 @@ Deterministic Go CLI framework for human + AI-agent teams.
 
 Scaffold fast, verify by contract, ship with confidence.
 
+## Project Health
+
+- License: [Apache-2.0](./LICENSE)
+- Security policy: [SECURITY.md](./SECURITY.md)
+- Contribution guide: [CONTRIBUTING.md](./CONTRIBUTING.md)
+- Code of Conduct: [CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md)
+- Changelog: [CHANGELOG.md](./CHANGELOG.md)
+- CI workflow: [`.github/workflows/ci.yml`](./.github/workflows/ci.yml)
+
 ## Installation
 
 ### Stable Release (Recommended)
@@ -62,6 +71,13 @@ Run full project verification:
 cd mycli
 task verify
 ```
+
+## Documentation
+
+- Docs home: [`docs/site/index.md`](./docs/site/index.md)
+- Getting started: [`docs/site/getting-started.md`](./docs/site/getting-started.md)
+- AI agent playbook: [`docs/site/ai-agent-playbook.md`](./docs/site/ai-agent-playbook.md)
+- Example catalog: [`examples/README.md`](./examples/README.md)
 
 ## Why agentcli-go
 
