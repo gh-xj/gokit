@@ -174,8 +174,7 @@ Phase 3: Extension ecosystem
 - Add optional modules without weakening core guarantees.
 - Define extension registration manifest and lifecycle boundaries.
 
-Phase 4: Migration + governance
-- Add `agentcli migrate`.
+Phase 4: Governance
 - Formalize semver policy and deprecation windows.
 - Add ADR process for contract changes.
 
@@ -200,7 +199,7 @@ Accepted: layered modules + strict core + optional extensions
 - New CLI from scaffold to production-ready baseline in under 30 minutes.
 - All generated projects pass `task verify` in clean environments.
 - Cross-project automation can consume all command outputs via stable `--json`.
-- Upgrade path remains low-risk with explicit migration tooling and contracts.
+- Upgrade path remains low-risk with explicit contracts and governance.
 
 ## 13. Next Step
 

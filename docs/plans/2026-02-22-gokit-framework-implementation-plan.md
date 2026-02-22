@@ -40,7 +40,7 @@ In scope:
 Out of scope:
 - Full extension marketplace.
 - Template variants.
-- Advanced migration automation (`agentcli migrate`) beyond basic warnings.
+- Advanced automation beyond core scaffold and verification contracts.
 
 ## 3. Milestones
 
@@ -140,11 +140,11 @@ Acceptance gates:
 - Smoke JSON validates against checked-in schemas.
 - `gen:*:check` catches drift without mutating repo state.
 
-## 7. Backward Compatibility Strategy
+## 7. Compatibility Strategy
 
 - Preserve existing top-level helper functions during phase 0-1.
 - Add compatibility tests for current API signatures and behaviors.
-- Document migration guidance without forcing immediate consumer rewrites.
+- Keep transition guidance concise while minimizing unnecessary compatibility burden.
 
 ## 8. Risks and Mitigations
 

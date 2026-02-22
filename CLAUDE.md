@@ -48,6 +48,6 @@ Shared Go CLI helpers and framework modules for personal projects.
 - Consumers use `go get github.com/gh-xj/agentcli-go@latest`
 
 ### Consumers
-- `disk-manager` — uses aliases (`var parseArgs = agentcli.ParseArgs`) for zero-churn migration
+- `disk-manager` — uses aliases (`var parseArgs = agentcli.ParseArgs`) for zero-churn adoption
 - `xj-core-maintainer` (timing-fill) — calls `agentcli.ParseArgs`/`agentcli.GetArg` directly
 - `raycast go_scripts` — uses alias (`var runOsascript = agentcli.RunOsascript`)
