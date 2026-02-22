@@ -8,6 +8,15 @@ Shared Go CLI helpers for personal projects. Eliminates copy-pasting `initLogger
 go get github.com/gh-xj/agentcli-go@latest
 ```
 
+## Migration Notice
+
+This project was renamed from `gokit` to `agentcli-go`.
+
+- Old module: `github.com/gh-xj/gokit`
+- New module: `github.com/gh-xj/agentcli-go`
+- Old scaffold entrypoint: `go run ./cmd/gokit ...`
+- New scaffold entrypoint: `go run ./cmd/agentcli ...`
+
 ## Usage
 
 ```go
