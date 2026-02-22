@@ -1,5 +1,10 @@
 # agentcli-go
 
+[![CI](https://github.com/gh-xj/agentcli-go/actions/workflows/ci.yml/badge.svg)](https://github.com/gh-xj/agentcli-go/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/gh-xj/agentcli-go)](https://github.com/gh-xj/agentcli-go/releases)
+[![License](https://img.shields.io/github/license/gh-xj/agentcli-go)](./LICENSE)
+[![Go Version](https://img.shields.io/github/go-mod/go-version/gh-xj/agentcli-go)](./go.mod)
+
 Deterministic Go CLI framework for human + AI-agent teams.
 
 Scaffold fast, verify by contract, ship with confidence.
