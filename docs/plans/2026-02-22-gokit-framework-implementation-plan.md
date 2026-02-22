@@ -4,6 +4,24 @@ Date: 2026-02-22
 Input design: `docs/plans/2026-02-22-gokit-framework-design.md`
 Planning scope: Phase 0 and Phase 1 (foundation + golden scaffold MVP)
 
+## Status Snapshot (2026-02-22)
+
+- Phase 0: completed
+  - Core runtime contracts merged (`AppContext`, lifecycle, typed exit mapping)
+  - Compatibility and contract tests added
+  - Canonical verification harness added (`task ci`, `task verify`)
+
+- Phase 1: completed
+  - Scaffold CLI merged (`new`, `add command`, `doctor --json`)
+  - Doctor schema versioning and smoke schema validation merged
+  - JSON contract schemas + positive/negative CI checks merged
+
+- Phase 2: in progress
+  - `cobrax` module merged with standardized root flags + exit code handling
+  - `configx` module merged with deterministic precedence loader
+  - Opt-in `cobrax` scaffold runtime merged (`gokit new --runtime cobrax`)
+  - Default scaffold still `legacy` until release cut and migration window starts
+
 ## 1. Objective
 
 Execute the approved framework direction with minimal risk:
