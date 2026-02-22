@@ -17,15 +17,9 @@ const rootCommandMarker = "// gokit:add-command"
 var validCommandName = regexp.MustCompile(`^[a-z][a-z0-9-]*$`)
 
 type templateData struct {
-	Module     string
-	Name       string
-	GoModBlock string
-}
-
-// ScaffoldOptions controls scaffold runtime generation behavior.
-type ScaffoldOptions struct {
-	Runtime        string
-	LocalGokitPath string
+	Module           string
+	Name             string
+	GokitReplaceLine string
 }
 
 // DoctorFinding describes a single compliance issue in a scaffolded project.
@@ -51,12 +45,8 @@ func (r DoctorReport) JSON() (string, error) {
 }
 
 // ScaffoldNew creates a new CLI project using the golden gokit layout.
+// This is now cobrax-only by design.
 func ScaffoldNew(baseDir, name, module string) (string, error) {
-	return ScaffoldNewWithOptions(baseDir, name, module, ScaffoldOptions{})
-}
-
-// ScaffoldNewWithOptions creates a new project with optional runtime tuning.
-func ScaffoldNewWithOptions(baseDir, name, module string, opts ScaffoldOptions) (string, error) {
 	if strings.TrimSpace(name) == "" {
 		return "", errors.New("project name is required")
 	}
@@ -66,13 +56,6 @@ func ScaffoldNewWithOptions(baseDir, name, module string, opts ScaffoldOptions) 
 	if strings.TrimSpace(module) == "" {
 		module = name
 	}
-	runtime := strings.TrimSpace(opts.Runtime)
-	if runtime == "" {
-		runtime = "legacy"
-	}
-	if runtime != "legacy" && runtime != "cobrax" {
-		return "", fmt.Errorf("invalid runtime %q: use legacy or cobrax", runtime)
-	}
 
 	root := filepath.Join(baseDir, name)
 	if err := ensureEmptyDir(root); err != nil {
@@ -80,18 +63,14 @@ func ScaffoldNewWithOptions(baseDir, name, module string, opts ScaffoldOptions) 
 	}
 
 	d := templateData{
-		Module:     module,
-		Name:       name,
-		GoModBlock: goModBlock(runtime, opts.LocalGokitPath),
-	}
-	rootTemplate := rootCmdTpl
-	if runtime == "cobrax" {
-		rootTemplate = rootCmdCobraxTpl
+		Module:           module,
+		Name:             name,
+		GokitReplaceLine: detectLocalGokitReplaceLine(),
 	}
 	for path, body := range map[string]string{
 		"go.mod":                            goModTpl,
 		"main.go":                           mainTpl,
-		"cmd/root.go":                       rootTemplate,
+		"cmd/root.go":                       rootCmdTpl,
 		"internal/app/bootstrap.go":         appBootstrapTpl,
 		"internal/app/lifecycle.go":         appLifecycleTpl,
 		"internal/app/errors.go":            appErrorsTpl,
@@ -126,24 +105,17 @@ func ScaffoldAddCommand(rootDir, commandName string) error {
 		return fmt.Errorf("command file already exists: %s", cmdFile)
 	}
 	funcName := kebabToCamel(commandName)
-	templateBody := addCommandTpl
-	rootFile := filepath.Join(rootDir, "cmd", "root.go")
-	rootContent, err := os.ReadFile(rootFile)
-	if err != nil {
-		return err
-	}
-	if strings.Contains(string(rootContent), `"github.com/gh-xj/gokit/cobrax"`) {
-		templateBody = addCommandCobraxTpl
-	}
-	if err := writeTemplate(cmdFile, templateBody, templateData{
-		Name:   commandName,
-		Module: funcName,
-	}); err != nil {
+	if err := writeTemplate(cmdFile, addCommandTpl, templateData{Name: commandName, Module: funcName}); err != nil {
 		return err
 	}
 
+	rootFile := filepath.Join(rootDir, "cmd", "root.go")
+	content, err := os.ReadFile(rootFile)
+	if err != nil {
+		return err
+	}
 	registerLine := fmt.Sprintf("registerCommand(%q, %sCommand())", commandName, funcName)
-	text := string(rootContent)
+	text := string(content)
 	if strings.Contains(text, registerLine) {
 		return nil
 	}
@@ -178,21 +150,13 @@ func Doctor(rootDir string) DoctorReport {
 		"Taskfile.yml",
 	}
 
-	report := DoctorReport{
-		SchemaVersion: "v1",
-		OK:            true,
-		Findings:      make([]DoctorFinding, 0),
-	}
+	report := DoctorReport{SchemaVersion: "v1", OK: true, Findings: make([]DoctorFinding, 0)}
 
 	for _, p := range required {
 		abs := filepath.Join(rootDir, p)
 		if !FileExists(abs) {
 			report.OK = false
-			report.Findings = append(report.Findings, DoctorFinding{
-				Code:    "missing_file",
-				Path:    p,
-				Message: "required file is missing",
-			})
+			report.Findings = append(report.Findings, DoctorFinding{Code: "missing_file", Path: p, Message: "required file is missing"})
 		}
 	}
 
@@ -203,18 +167,11 @@ func Doctor(rootDir string) DoctorReport {
 		}
 		if !strings.Contains(string(content), want) {
 			report.OK = false
-			report.Findings = append(report.Findings, DoctorFinding{
-				Code:    code,
-				Path:    relPath,
-				Message: msg,
-			})
+			report.Findings = append(report.Findings, DoctorFinding{Code: code, Path: relPath, Message: msg})
 		}
 	}
 
-	checkContains("cmd/root.go", "missing_contract", "--verbose", "required root flag --verbose missing")
-	checkContains("cmd/root.go", "missing_contract", "--config", "required root flag --config missing")
-	checkContains("cmd/root.go", "missing_contract", "--json", "required root flag --json missing")
-	checkContains("cmd/root.go", "missing_contract", "--no-color", "required root flag --no-color missing")
+	checkContains("cmd/root.go", "missing_contract", `"github.com/gh-xj/gokit/cobrax"`, "cobrax runtime import missing")
 	checkContains("cmd/root.go", "missing_contract", rootCommandMarker, "missing scaffold command marker")
 	checkContains("Taskfile.yml", "missing_contract", "ci:", "canonical CI task missing")
 	checkContains("Taskfile.yml", "missing_contract", "verify:", "local verification task missing")
@@ -224,36 +181,14 @@ func Doctor(rootDir string) DoctorReport {
 	checkContains("internal/app/lifecycle.go", "missing_contract", "Postflight", "lifecycle postflight hook missing")
 	checkContains("test/smoke/version.schema.json", "missing_contract", "\"schema_version\": \"v1\"", "smoke schema version missing")
 
-	rootData, err := os.ReadFile(filepath.Join(rootDir, "cmd", "root.go"))
-	if err == nil && strings.Contains(string(rootData), `"github.com/gh-xj/gokit/cobrax"`) {
-		report.Findings = filterFlagLiteralFindings(report.Findings)
-		report.OK = len(report.Findings) == 0
-	}
-
 	slices.SortFunc(report.Findings, func(a, b DoctorFinding) int {
 		if c := strings.Compare(a.Path, b.Path); c != 0 {
 			return c
 		}
 		return strings.Compare(a.Code, b.Code)
 	})
+	report.OK = len(report.Findings) == 0
 	return report
-}
-
-func filterFlagLiteralFindings(in []DoctorFinding) []DoctorFinding {
-	out := make([]DoctorFinding, 0, len(in))
-	skipMessages := map[string]bool{
-		"required root flag --verbose missing":  true,
-		"required root flag --config missing":   true,
-		"required root flag --json missing":     true,
-		"required root flag --no-color missing": true,
-	}
-	for _, f := range in {
-		if skipMessages[f.Message] {
-			continue
-		}
-		out = append(out, f)
-	}
-	return out
 }
 
 func ensureEmptyDir(root string) error {
@@ -297,24 +232,34 @@ func kebabToCamel(in string) string {
 	return strings.Join(parts, "")
 }
 
-func goModBlock(runtime, localGokitPath string) string {
-	if runtime != "cobrax" {
+func detectLocalGokitReplaceLine() string {
+	cwd, err := os.Getwd()
+	if err != nil {
 		return ""
 	}
-	lines := []string{
-		"require github.com/gh-xj/gokit v0.2.0",
+	dir := cwd
+	for i := 0; i < 16; i++ {
+		modFile := filepath.Join(dir, "go.mod")
+		data, err := os.ReadFile(modFile)
+		if err == nil && strings.Contains(string(data), "module github.com/gh-xj/gokit") {
+			return fmt.Sprintf("replace github.com/gh-xj/gokit => %s", dir)
+		}
+		parent := filepath.Dir(dir)
+		if parent == dir {
+			break
+		}
+		dir = parent
 	}
-	if strings.TrimSpace(localGokitPath) != "" {
-		lines = append(lines, fmt.Sprintf("replace github.com/gh-xj/gokit => %s", localGokitPath))
-	}
-	return strings.Join(lines, "\n")
+	return ""
 }
 
 const goModTpl = `module {{.Module}}
 
 go 1.25.5
 
-{{.GoModBlock}}
+require github.com/gh-xj/gokit v0.2.0
+
+{{.GokitReplaceLine}}
 `
 
 const mainTpl = `package main
@@ -331,142 +276,6 @@ func main() {
 `
 
 const rootCmdTpl = `package cmd
-
-import (
-	"context"
-	"encoding/json"
-	"fmt"
-	"os"
-	"sort"
-	"strings"
-
-	"github.com/gh-xj/gokit"
-)
-
-type command struct {
-	Description string
-	Run         func([]string, bool) error
-}
-
-var commandRegistry = map[string]command{}
-
-func init() {
-	registerBuiltins()
-	// gokit:add-command
-}
-
-func registerCommand(name string, cmd command) {
-	commandRegistry[name] = cmd
-}
-
-func registerBuiltins() {
-	registerCommand("version", command{
-		Description: "print build metadata",
-		Run: func(_ []string, jsonOutput bool) error {
-			data := map[string]string{
-				"schema_version": "v1",
-				"name":           "{{.Name}}",
-				"version":        "dev",
-				"commit":         "none",
-				"date":           "unknown",
-			}
-			if jsonOutput {
-				enc := json.NewEncoder(os.Stdout)
-				enc.SetIndent("", "  ")
-				return enc.Encode(data)
-			}
-			_, err := fmt.Fprintf(os.Stdout, "%s %s (%s %s)\n", data["name"], data["version"], data["commit"], data["date"])
-			return err
-		},
-	})
-}
-
-func Execute(args []string) int {
-	gokit.InitLogger()
-
-	global, rest, err := parseGlobal(args)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, err.Error())
-		printUsage()
-		return 2
-	}
-	if global.help || len(rest) == 0 {
-		printUsage()
-		return 2
-	}
-	cmdName := rest[0]
-	cmd, ok := commandRegistry[cmdName]
-	if !ok {
-		fmt.Fprintf(os.Stderr, "unknown command: %s\n", cmdName)
-		printUsage()
-		return 2
-	}
-
-	_ = context.Background() // reserved for future runtime context usage
-	runErr := cmd.Run(rest[1:], global.json)
-	if runErr != nil {
-		fmt.Fprintln(os.Stderr, runErr.Error())
-	}
-	if runErr != nil {
-		return 1
-	}
-	return 0
-}
-
-type globalFlags struct {
-	verbose bool
-	config  string
-	json    bool
-	noColor bool
-	help    bool
-}
-
-func parseGlobal(args []string) (globalFlags, []string, error) {
-	out := globalFlags{}
-	rest := make([]string, 0, len(args))
-	for i := 0; i < len(args); i++ {
-		switch args[i] {
-		case "-v", "--verbose":
-			out.verbose = true
-		case "--json":
-			out.json = true
-		case "--no-color":
-			out.noColor = true
-		case "-h", "--help":
-			out.help = true
-		case "--config":
-			if i+1 >= len(args) {
-				return out, nil, fmt.Errorf("--config requires a value")
-			}
-			out.config = args[i+1]
-			i++
-		default:
-			rest = append(rest, args[i:]...)
-			return out, rest, nil
-		}
-	}
-	return out, rest, nil
-}
-
-func printUsage() {
-	names := make([]string, 0, len(commandRegistry))
-	for name := range commandRegistry {
-		names = append(names, name)
-	}
-	sort.Strings(names)
-
-	fmt.Fprintln(os.Stderr, "Usage:")
-	fmt.Fprintln(os.Stderr, "  {{.Name}} [--verbose] [--config path] [--json] [--no-color] <command> [args]")
-	fmt.Fprintln(os.Stderr)
-	fmt.Fprintln(os.Stderr, "Commands:")
-	for _, name := range names {
-		desc := strings.TrimSpace(commandRegistry[name].Description)
-		fmt.Fprintf(os.Stderr, "  %-16s %s\n", name, desc)
-	}
-}
-`
-
-const rootCmdCobraxTpl = `package cmd
 
 import (
 	"encoding/json"
@@ -547,31 +356,6 @@ func Execute(args []string) int {
 `
 
 const addCommandTpl = `package cmd
-
-import (
-	"fmt"
-	"os"
-)
-
-func init() {
-}
-
-func {{.Module}}Command() command {
-	return command{
-		Description: "describe {{.Name}}",
-		Run: func(args []string, jsonOutput bool) error {
-			if jsonOutput {
-				_, err := fmt.Fprintln(os.Stdout, "{\"command\":\"{{.Name}}\",\"ok\":true}")
-				return err
-			}
-			_, err := fmt.Fprintf(os.Stdout, "{{.Name}} executed with %d args\n", len(args))
-			return err
-		},
-	}
-}
-`
-
-const addCommandCobraxTpl = `package cmd
 
 import (
 	"fmt"

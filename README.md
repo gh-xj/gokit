@@ -63,11 +63,9 @@ go run ./cmd/gokit add command --dir ./mycli sync-data
 go run ./cmd/gokit doctor --dir ./mycli --json
 ```
 
-Optional Phase 2 scaffold runtime:
-
-```bash
-go run ./cmd/gokit new --runtime cobrax --local-gokit /abs/path/to/gokit mycli
-```
+Scaffold runtime is now `cobrax`-only.
+During local development (before a tagged release is available), generated `go.mod`
+automatically includes a local `replace github.com/gh-xj/gokit => <detected-path>` when possible.
 
 Generated projects include a deterministic smoke artifact contract:
 - writes `test/smoke/version.output.json`

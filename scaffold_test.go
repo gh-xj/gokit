@@ -121,14 +121,11 @@ func TestDoctorJSONIncludesSchemaVersion(t *testing.T) {
 	}
 }
 
-func TestScaffoldNewCobraxRuntime(t *testing.T) {
+func TestScaffoldNewUsesCobraxRuntime(t *testing.T) {
 	root := t.TempDir()
-	projectPath, err := ScaffoldNewWithOptions(root, "samplecli", "example.com/samplecli", ScaffoldOptions{
-		Runtime:        "cobrax",
-		LocalGokitPath: "/tmp/gokit-local",
-	})
+	projectPath, err := ScaffoldNew(root, "samplecli", "example.com/samplecli")
 	if err != nil {
-		t.Fatalf("ScaffoldNewWithOptions failed: %v", err)
+		t.Fatalf("ScaffoldNew failed: %v", err)
 	}
 	goMod, err := os.ReadFile(filepath.Join(projectPath, "go.mod"))
 	if err != nil {
@@ -137,9 +134,6 @@ func TestScaffoldNewCobraxRuntime(t *testing.T) {
 	text := string(goMod)
 	if !strings.Contains(text, "require github.com/gh-xj/gokit v0.2.0") {
 		t.Fatalf("missing phase2 requirement in go.mod: %s", text)
-	}
-	if !strings.Contains(text, "replace github.com/gh-xj/gokit => /tmp/gokit-local") {
-		t.Fatalf("missing local replace in go.mod: %s", text)
 	}
 
 	rootCmd, err := os.ReadFile(filepath.Join(projectPath, "cmd", "root.go"))
@@ -151,13 +145,11 @@ func TestScaffoldNewCobraxRuntime(t *testing.T) {
 	}
 }
 
-func TestScaffoldAddCommandCobraxRuntime(t *testing.T) {
+func TestScaffoldAddCommandUsesCobraxSignature(t *testing.T) {
 	root := t.TempDir()
-	projectPath, err := ScaffoldNewWithOptions(root, "samplecli", "example.com/samplecli", ScaffoldOptions{
-		Runtime: "cobrax",
-	})
+	projectPath, err := ScaffoldNew(root, "samplecli", "example.com/samplecli")
 	if err != nil {
-		t.Fatalf("ScaffoldNewWithOptions failed: %v", err)
+		t.Fatalf("ScaffoldNew failed: %v", err)
 	}
 	if err := ScaffoldAddCommand(projectPath, "sync-data"); err != nil {
 		t.Fatalf("ScaffoldAddCommand failed: %v", err)
@@ -174,11 +166,9 @@ func TestScaffoldAddCommandCobraxRuntime(t *testing.T) {
 
 func TestDoctorReportsCobraxProjectAsOK(t *testing.T) {
 	root := t.TempDir()
-	projectPath, err := ScaffoldNewWithOptions(root, "samplecli", "example.com/samplecli", ScaffoldOptions{
-		Runtime: "cobrax",
-	})
+	projectPath, err := ScaffoldNew(root, "samplecli", "example.com/samplecli")
 	if err != nil {
-		t.Fatalf("ScaffoldNewWithOptions failed: %v", err)
+		t.Fatalf("ScaffoldNew failed: %v", err)
 	}
 	report := Doctor(projectPath)
 	if !report.OK {

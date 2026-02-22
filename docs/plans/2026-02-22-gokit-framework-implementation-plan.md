@@ -19,8 +19,8 @@ Planning scope: Phase 0 and Phase 1 (foundation + golden scaffold MVP)
 - Phase 2: in progress
   - `cobrax` module merged with standardized root flags + exit code handling
   - `configx` module merged with deterministic precedence loader
-  - Opt-in `cobrax` scaffold runtime merged (`gokit new --runtime cobrax`)
-  - Default scaffold still `legacy` until release cut and migration window starts
+  - Scaffold switched to `cobrax`-only runtime (legacy path removed)
+  - Backward compatibility path intentionally dropped for faster convergence
 
 ## 1. Objective
 
