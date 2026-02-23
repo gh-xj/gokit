@@ -18,7 +18,7 @@ func runPlannerRole(repoRoot, artifactDir string, spec RoleSpec, ctx roleContext
 		if err := validatePlannerOutput(out); err != nil {
 			return out, execMeta, err
 		}
-		_ = writeJSON(filepath.Join(artifactDir, "planner-output.json"), out)
+		_ = writeArtifactJSON(artifactDir, "planner-output.json", out)
 		return out, execMeta, nil
 	}
 
@@ -35,7 +35,7 @@ func runPlannerRole(repoRoot, artifactDir string, spec RoleSpec, ctx roleContext
 	if err := validatePlannerOutput(external); err != nil {
 		return out, execMeta, err
 	}
-	_ = writeJSON(filepath.Join(artifactDir, "planner-output.json"), external)
+	_ = writeArtifactJSON(artifactDir, "planner-output.json", external)
 	return external, execMeta, nil
 }
 
@@ -53,7 +53,7 @@ func runFixerRole(repoRoot, artifactDir string, spec RoleSpec, ctx roleContext, 
 		}
 		execMeta.Applied = fallback.Applied
 		execMeta.Notes = fallback.Notes
-		_ = writeJSON(filepath.Join(artifactDir, "fixer-output.json"), fallback)
+		_ = writeArtifactJSON(artifactDir, "fixer-output.json", fallback)
 		return fallback.Applied, execMeta, nil
 	}
 
@@ -79,7 +79,7 @@ func runFixerRole(repoRoot, artifactDir string, spec RoleSpec, ctx roleContext, 
 	}
 	execMeta.Applied = external.Applied
 	execMeta.Notes = external.Notes
-	_ = writeJSON(filepath.Join(artifactDir, "fixer-output.json"), external)
+	_ = writeArtifactJSON(artifactDir, "fixer-output.json", external)
 	return append(fallback.Applied, external.Applied...), execMeta, nil
 }
 
@@ -91,7 +91,7 @@ func runJudgerRole(repoRoot, artifactDir string, spec RoleSpec, ctx roleContext)
 			return fallback, execMeta, err
 		}
 		execMeta.Notes = fallback.Notes
-		_ = writeJSON(filepath.Join(artifactDir, "judger-output.json"), fallback)
+		_ = writeArtifactJSON(artifactDir, "judger-output.json", fallback)
 		return fallback, execMeta, nil
 	}
 
@@ -109,11 +109,14 @@ func runJudgerRole(repoRoot, artifactDir string, spec RoleSpec, ctx roleContext)
 		return fallback, execMeta, err
 	}
 	execMeta.Notes = external.Notes
-	_ = writeJSON(filepath.Join(artifactDir, "judger-output.json"), external)
+	_ = writeArtifactJSON(artifactDir, "judger-output.json", external)
 	return external, execMeta, nil
 }
 
 func runExternalRole(command, repoRoot, artifactDir, role string, input any, out any) (int, string, error) {
+	if strings.TrimSpace(artifactDir) == "" {
+		return 1, "", fmt.Errorf("external role %s requires artifact dir", role)
+	}
 	ctxPath := filepath.Join(artifactDir, role+"-context.json")
 	outPath := filepath.Join(artifactDir, role+"-external-output.json")
 	if err := writeJSON(ctxPath, input); err != nil {
@@ -204,4 +207,11 @@ func validateJudgerOutput(out judgerOutput) error {
 		return fmt.Errorf("judger notes are required")
 	}
 	return nil
+}
+
+func writeArtifactJSON(artifactDir, filename string, v any) error {
+	if strings.TrimSpace(artifactDir) == "" {
+		return nil
+	}
+	return writeJSON(filepath.Join(artifactDir, filename), v)
 }

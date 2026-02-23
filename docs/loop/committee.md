@@ -11,29 +11,30 @@ Use committee mode to run a role-based verification experiment.
 ## Run
 
 ```bash
-agentcli loop all \
+agentcli loop lab autofix \
   --mode committee \
   --role-config ./configs/committee.roles.example.json \
   --threshold 9.0 \
-  --max-iterations 3
+  --max-iterations 3 \
+  --verbose-artifacts
 ```
 
 Compare two runs:
 
 ```bash
-agentcli loop compare --repo-root . --run-a 20260223-021749 --run-b 20260223-023012
+agentcli loop lab compare --repo-root . --run-a 20260223-021749 --run-b 20260223-023012
 ```
 
 Write a markdown compare report:
 
 ```bash
-agentcli loop compare --repo-root . --run-a 20260223-021749 --run-b 20260223-023012 --format md --out .docs/onboarding-loop/compare/report.md
+agentcli loop lab compare --repo-root . --run-a 20260223-021749 --run-b 20260223-023012 --format md --out .docs/onboarding-loop/compare/report.md
 ```
 
 Replay a recorded iteration:
 
 ```bash
-agentcli loop replay --repo-root . --run-id 20260223-021749 --iter 1
+agentcli loop lab replay --repo-root . --run-id 20260223-021749 --iter 1
 ```
 
 ## External role contract

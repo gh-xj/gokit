@@ -46,6 +46,9 @@ func runCommittee(cfg Config, agentcliBin string, started time.Time, runID strin
 	if err != nil {
 		return RunResult{}, err
 	}
+	if !cfg.VerboseArtifacts && hasExternalRole(roles) {
+		return RunResult{}, fmt.Errorf("external role commands require verbose artifacts; use lab mode")
+	}
 
 	baseArtifacts := filepath.Join(cfg.RepoRoot, ".docs", "onboarding-loop", "runs", runID)
 	if err := os.MkdirAll(baseArtifacts, 0755); err != nil {
@@ -66,9 +69,12 @@ func runCommittee(cfg Config, agentcliBin string, started time.Time, runID strin
 	}
 
 	for i := 1; i <= cfg.MaxIterations; i++ {
-		iterArtifacts := filepath.Join(baseArtifacts, fmt.Sprintf("iter-%02d", i))
-		if err := os.MkdirAll(iterArtifacts, 0755); err != nil {
-			return result, err
+		iterArtifacts := ""
+		if cfg.VerboseArtifacts {
+			iterArtifacts = filepath.Join(baseArtifacts, fmt.Sprintf("iter-%02d", i))
+			if err := os.MkdirAll(iterArtifacts, 0755); err != nil {
+				return result, err
+			}
 		}
 
 		sr, findings, err := runScenarioAndFindings(agentcliBin, cfg.RepoRoot)
@@ -87,6 +93,9 @@ func runCommittee(cfg Config, agentcliBin string, started time.Time, runID strin
 			FixesSoFar:  append([]string{}, result.FixesApplied...),
 			RepoRoot:    cfg.RepoRoot,
 			ArtifactDir: iterArtifacts,
+		}
+		if iterArtifacts != "" {
+			_ = writeJSON(filepath.Join(iterArtifacts, "planner-context.json"), ctx)
 		}
 
 		plan, plannerExec, err := runPlannerRole(cfg.RepoRoot, iterArtifacts, roles.Planner, ctx)
@@ -109,6 +118,9 @@ func runCommittee(cfg Config, agentcliBin string, started time.Time, runID strin
 		jCtx := ctx
 		jCtx.Scenario = postScenario
 		jCtx.Findings = postFindings
+		if iterArtifacts != "" {
+			_ = writeJSON(filepath.Join(iterArtifacts, "judger-context.json"), jCtx)
+		}
 		judgeOut, judgerExec, err := runJudgerRole(cfg.RepoRoot, iterArtifacts, roles.Judger, jCtx)
 		if err != nil {
 			return result, err
@@ -221,4 +233,10 @@ func scoreJudger(out judgerOutput, exec RoleExecution) float64 {
 		return 2.0
 	}
 	return 5.0
+}
+
+func hasExternalRole(cfg RoleConfig) bool {
+	return strings.TrimSpace(cfg.Planner.Command) != "" ||
+		strings.TrimSpace(cfg.Fixer.Command) != "" ||
+		strings.TrimSpace(cfg.Judger.Command) != ""
 }

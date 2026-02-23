@@ -181,13 +181,13 @@ Artifacts are stored at `.docs/onboarding-loop/runs/<run-id>/`.
 Compare two experiment runs:
 
 ```bash
-agentcli loop compare --repo-root . --run-a <run-id-a> --run-b <run-id-b>
+agentcli loop lab compare --repo-root . --run-a <run-id-a> --run-b <run-id-b>
 ```
 
 Replay one recorded committee iteration:
 
 ```bash
-agentcli loop replay --repo-root . --run-id <run-id> --iter 1
+agentcli loop lab replay --repo-root . --run-id <run-id> --iter 1
 ```
 
 ## Examples

@@ -58,7 +58,7 @@ func run(repoRoot string, threshold float64, output string) error {
 	if err != nil {
 		return err
 	}
-	committee, err := harnessloop.RunLoop(harnessloop.Config{RepoRoot: repoRoot, Threshold: threshold, MaxIterations: 1, Mode: "committee", RoleConfigPath: "./configs/committee.roles.example.json", AutoFix: false, AutoCommit: false})
+	committee, err := harnessloop.RunLoop(harnessloop.Config{RepoRoot: repoRoot, Threshold: threshold, MaxIterations: 1, Mode: "committee", AutoFix: false, AutoCommit: false})
 	if err != nil {
 		return err
 	}

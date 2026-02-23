@@ -6,16 +6,17 @@ import (
 )
 
 type Config struct {
-	RepoRoot       string
-	Threshold      float64
-	MaxIterations  int
-	AutoFix        bool
-	AutoCommit     bool
-	Branch         string
-	Mode           string
-	RoleConfigPath string
-	Seed           int64
-	Budget         int
+	RepoRoot         string
+	Threshold        float64
+	MaxIterations    int
+	AutoFix          bool
+	AutoCommit       bool
+	Branch           string
+	Mode             string
+	RoleConfigPath   string
+	Seed             int64
+	Budget           int
+	VerboseArtifacts bool
 }
 
 func RunLoop(cfg Config) (RunResult, error) {
@@ -69,7 +70,7 @@ func normalizeConfig(cfg Config) Config {
 		cfg.Branch = "autofix/onboarding-loop"
 	}
 	if cfg.Mode == "" {
-		cfg.Mode = "classic"
+		cfg.Mode = "committee"
 	}
 	if cfg.Budget <= 0 {
 		cfg.Budget = 1

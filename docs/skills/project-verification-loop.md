@@ -9,9 +9,10 @@ A reusable multi-agent verification/autofix loop that works across repositories 
 - Local CLI: `agentcli loop ...`
 - API: `agentcli loop --api http://127.0.0.1:7878 ...`
 - Server: `agentcli loop-server --addr 127.0.0.1:7878 --repo-root .`
-- Committee mode: `agentcli loop all --mode committee --role-config <file>`
-- Compare runs: `agentcli loop compare --run-a <id-or-path> --run-b <id-or-path>`
-- Replay iteration: `agentcli loop replay --run-id <id> --iter <n>`
+- Lean loop: `agentcli loop run|judge|autofix`
+- Lab committee mode: `agentcli loop lab run --mode committee --role-config <file> --verbose-artifacts`
+- Compare runs: `agentcli loop lab compare --run-a <id-or-path> --run-b <id-or-path>`
+- Replay iteration: `agentcli loop lab replay --run-id <id> --iter <n>`
 
 ## Required artifacts
 

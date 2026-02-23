@@ -260,19 +260,19 @@ tasks:
       - go run ./cmd/agentcli loop autofix --repo-root . --threshold 9.0 --max-iterations 3
 
   loop:all:
-    desc: Full onboarding reinforcement loop
+    desc: Full onboarding reinforcement loop (alias of autofix)
     cmds:
-      - go run ./cmd/agentcli loop all --repo-root . --threshold 9.0 --max-iterations 3
+      - go run ./cmd/agentcli loop autofix --repo-root . --threshold 9.0 --max-iterations 3
 
   loop:committee:
-    desc: Role-based committee experiment loop with persisted run artifacts
+    desc: Lab mode with external role config and verbose per-iteration artifacts
     cmds:
-      - go run ./cmd/agentcli loop all --repo-root . --mode committee --role-config ./configs/committee.roles.example.json --threshold 9.0 --max-iterations 3
+      - go run ./cmd/agentcli loop lab autofix --repo-root . --mode committee --role-config ./configs/committee.roles.example.json --threshold 9.0 --max-iterations 3 --verbose-artifacts
 
   loop:committee:judge:
-    desc: Committee judge-only gate (no autofix commits)
+    desc: Lean committee judge-only gate (no verbose artifacts)
     cmds:
-      - go run ./cmd/agentcli loop judge --repo-root . --mode committee --role-config ./configs/committee.roles.example.json --threshold 9.0 --max-iterations 1
+      - go run ./cmd/agentcli loop judge --repo-root . --threshold 9.0 --max-iterations 1
 
   loop:benchmark:
     desc: Run deterministic benchmark summary for classic vs committee
