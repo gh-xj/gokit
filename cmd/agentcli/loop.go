@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"path/filepath"
 
 	agentcli "github.com/gh-xj/agentcli-go"
 	harnessloop "github.com/gh-xj/agentcli-go/internal/harnessloop"
@@ -12,7 +13,7 @@ import (
 
 func runLoop(args []string) int {
 	if len(args) == 0 {
-		fmt.Fprintln(os.Stderr, "usage: agentcli loop [run|judge|autofix|doctor|lab]")
+		fmt.Fprintln(os.Stderr, "usage: agentcli loop [run|judge|autofix|doctor|review|lab]")
 		return agentcli.ExitUsage
 	}
 
@@ -21,6 +22,22 @@ func runLoop(args []string) int {
 	}
 
 	action := args[0]
+	if action == "review" {
+		opts, err := parseLoopFlags(args[1:])
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err.Error())
+			return agentcli.ExitUsage
+		}
+		reviewPath := filepath.Join(opts.RepoRoot, ".docs", "onboarding-loop", "review", "latest.md")
+		content, err := os.ReadFile(reviewPath)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "read review file: %v\n", err)
+			return agentcli.ExitFailure
+		}
+		fmt.Fprintln(os.Stdout, string(content))
+		return agentcli.ExitSuccess
+	}
+
 	if action == "doctor" {
 		opts, err := parseLoopFlags(args[1:])
 		if err != nil {

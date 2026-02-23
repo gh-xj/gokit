@@ -151,6 +151,21 @@ func TestRunLoopDoctor(t *testing.T) {
 	}
 }
 
+func TestRunLoopReview(t *testing.T) {
+	root := t.TempDir()
+	reviewDir := filepath.Join(root, ".docs", "onboarding-loop", "review")
+	if err := os.MkdirAll(reviewDir, 0755); err != nil {
+		t.Fatalf("mkdir review dir: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(reviewDir, "latest.md"), []byte("# ok\n"), 0644); err != nil {
+		t.Fatalf("write review file: %v", err)
+	}
+	exitCode := run([]string{"loop", "review", "--repo-root", root})
+	if exitCode != agentcli.ExitSuccess {
+		t.Fatalf("unexpected exit code: got %d want %d", exitCode, agentcli.ExitSuccess)
+	}
+}
+
 func TestParseLoopFlags(t *testing.T) {
 	opts, err := parseLoopFlags([]string{
 		"--repo-root", ".",

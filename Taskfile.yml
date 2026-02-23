@@ -63,9 +63,15 @@ tasks:
       - sh -c '! go run ./internal/tools/schemacheck --schema schemas/loop-role-fixer-output.schema.json --input testdata/contracts/loop-role-fixer-output.bad-missing-notes.json'
       - sh -c '! go run ./internal/tools/schemacheck --schema schemas/loop-role-judger-output.schema.json --input testdata/contracts/loop-role-judger-output.bad-missing-notes.json'
 
+  docs:check:
+    desc: Fail when skill docs drift from CLI help signatures
+    deps: [fmt:check]
+    cmds:
+      - go run ./internal/tools/doccheck --repo-root .
+
   ci:
     desc: Canonical CI contract command
-    deps: [lint, test, build, smoke, schema:check, schema:negative]
+    deps: [lint, test, build, smoke, schema:check, schema:negative, docs:check]
     cmds:
       - echo "ci checks passed"
 
@@ -258,6 +264,11 @@ tasks:
     desc: Render doctor report in markdown
     cmds:
       - go run ./cmd/agentcli loop doctor --repo-root . --md
+
+  loop:review:
+    desc: Print latest reviewer dashboard
+    cmds:
+      - go run ./cmd/agentcli loop review --repo-root .
 
   loop:judge:api:
     desc: Run onboarding judge via local loop API

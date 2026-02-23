@@ -26,6 +26,12 @@ Primary reviewer file:
 
 - `.docs/onboarding-loop/review/latest.md`
 
+Or print it directly:
+
+```bash
+agentcli loop review --repo-root .
+```
+
 Primary machine-readable summary:
 
 - `.docs/onboarding-loop/latest-summary.json`
@@ -45,3 +51,13 @@ Use advanced workflows only when needed:
 Reviewer checklist:
 
 - `skills/verification-loop/CHECKLIST.md`
+
+## Troubleshooting in 60s
+
+1. `loop doctor` fails lean-ready:
+   - run `agentcli loop doctor --repo-root . --md`
+   - fix onboarding install prompt issues reported in findings.
+2. `loop review` says file missing:
+   - run `agentcli loop judge --repo-root . --max-iterations 1` once to generate review output.
+3. replay/compare needs more artifacts:
+   - run `agentcli loop lab run --repo-root . --max-iterations 1 --verbose-artifacts`.
