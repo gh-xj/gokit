@@ -61,6 +61,9 @@ type JudgeScore struct {
 	UXScore              float64 `json:"ux_score"`
 	QualityScore         float64 `json:"quality_score"`
 	PenaltyScore         float64 `json:"penalty_score"`
+	PlannerScore         float64 `json:"planner_score,omitempty"`
+	FixerScore           float64 `json:"fixer_score,omitempty"`
+	JudgerScore          float64 `json:"judger_score,omitempty"`
 	ScenarioPassRate     float64 `json:"scenario_pass_rate"`
 	CounterIntuitiveFind int     `json:"counter_intuitive_findings"`
 	HardFailures         int     `json:"hard_failures"`

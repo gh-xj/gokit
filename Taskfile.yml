@@ -274,6 +274,17 @@ tasks:
     cmds:
       - go run ./cmd/agentcli loop judge --repo-root . --mode committee --role-config ./configs/committee.roles.example.json --threshold 9.0 --max-iterations 1
 
+  loop:benchmark:
+    desc: Run deterministic benchmark summary for classic vs committee
+    cmds:
+      - go run ./internal/tools/loopbench --mode run --repo-root . --output .docs/onboarding-loop/benchmarks/latest.json
+      - go run ./internal/tools/schemacheck --schema schemas/loop-benchmark-summary.schema.json --input .docs/onboarding-loop/benchmarks/latest.json
+
+  loop:benchmark:check:
+    desc: Enforce benchmark floor from baseline
+    cmds:
+      - go run ./internal/tools/loopbench --mode check --output .docs/onboarding-loop/benchmarks/latest.json --baseline testdata/benchmarks/loop-benchmark-baseline.json
+
   loop:evolve:
     desc: Project skill trigger (local evolve loop + push branch + open/update PR)
     cmds:

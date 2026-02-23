@@ -153,11 +153,15 @@ func TestParseLoopFlags(t *testing.T) {
 		"--budget", "3",
 		"--run-a", "runA",
 		"--run-b", "runB",
+		"--run-id", "runC",
+		"--iter", "2",
+		"--format", "md",
+		"--out", ".docs/compare.md",
 	})
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	if opts.RepoRoot != "." || opts.Threshold != 8.5 || opts.MaxIterations != 2 || opts.Branch != "autofix/test" || opts.APIURL != "http://127.0.0.1:7878" || opts.Mode != "committee" || opts.RoleConfig != ".docs/roles.json" || opts.Seed != 7 || opts.Budget != 3 || opts.RunA != "runA" || opts.RunB != "runB" {
+	if opts.RepoRoot != "." || opts.Threshold != 8.5 || opts.MaxIterations != 2 || opts.Branch != "autofix/test" || opts.APIURL != "http://127.0.0.1:7878" || opts.Mode != "committee" || opts.RoleConfig != ".docs/roles.json" || opts.Seed != 7 || opts.Budget != 3 || opts.RunA != "runA" || opts.RunB != "runB" || opts.RunID != "runC" || opts.Iteration != 2 || opts.Format != "md" || opts.Out != ".docs/compare.md" {
 		t.Fatalf("unexpected parse values: %+v", opts)
 	}
 }

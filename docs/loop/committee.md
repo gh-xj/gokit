@@ -24,6 +24,18 @@ Compare two runs:
 agentcli loop compare --repo-root . --run-a 20260223-021749 --run-b 20260223-023012
 ```
 
+Write a markdown compare report:
+
+```bash
+agentcli loop compare --repo-root . --run-a 20260223-021749 --run-b 20260223-023012 --format md --out .docs/onboarding-loop/compare/report.md
+```
+
+Replay a recorded iteration:
+
+```bash
+agentcli loop replay --repo-root . --run-id 20260223-021749 --iter 1
+```
+
 ## External role contract
 
 Each role may provide a command in role config. Runtime injects:
@@ -45,3 +57,10 @@ Saved per run at:
 - `.docs/onboarding-loop/runs/<run-id>/final-report.json`
 
 This makes A/B experiments reproducible and auditable.
+
+## Benchmark Floor
+
+```bash
+task loop:benchmark
+task loop:benchmark:check
+```

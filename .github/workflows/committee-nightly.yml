@@ -20,6 +20,11 @@ jobs:
       - name: Run committee judge gate
         run: task loop:committee:judge
 
+      - name: Run benchmark and enforce baseline
+        run: |
+          task loop:benchmark
+          task loop:benchmark:check
+
       - name: Upload committee loop artifacts
         if: always()
         uses: actions/upload-artifact@v4

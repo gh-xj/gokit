@@ -118,6 +118,9 @@ func runCommittee(cfg Config, agentcliBin string, started time.Time, runID strin
 		allFindings := append([]Finding{}, postFindings...)
 		allFindings = append(allFindings, judgeOut.ExtraFindings...)
 		score := Judge(postScenario, allFindings, cfg.Threshold)
+		score.PlannerScore = scorePlanner(plan, findings)
+		score.FixerScore = scoreFixer(findings, allFindings, fixes)
+		score.JudgerScore = scoreJudger(judgeOut, result.Committee.Judger)
 
 		result.Scenario = postScenario
 		result.Findings = allFindings
@@ -172,4 +175,50 @@ func loadRoleConfig(path string) (RoleConfig, error) {
 		return RoleConfig{}, fmt.Errorf("parse role config: %w", err)
 	}
 	return cfg, nil
+}
+
+func scorePlanner(plan plannerOutput, findings []Finding) float64 {
+	if len(findings) == 0 {
+		return 5.0
+	}
+	if len(plan.FixTargets) == 0 {
+		return 1.0
+	}
+	targets := map[string]bool{}
+	for _, t := range plan.FixTargets {
+		targets[strings.TrimSpace(t)] = true
+	}
+	matched := 0
+	for _, f := range findings {
+		if targets[f.Code] {
+			matched++
+		}
+	}
+	ratio := float64(matched) / float64(len(findings))
+	return 1.0 + ratio*4.0
+}
+
+func scoreFixer(before, after []Finding, fixes []string) float64 {
+	if len(before) == 0 {
+		return 5.0
+	}
+	if len(fixes) == 0 {
+		return 1.0
+	}
+	reduction := len(before) - len(after)
+	if reduction < 0 {
+		return 1.0
+	}
+	ratio := float64(reduction) / float64(len(before))
+	return 1.0 + ratio*4.0
+}
+
+func scoreJudger(out judgerOutput, exec RoleExecution) float64 {
+	if !exec.Independent {
+		return 2.5
+	}
+	if strings.TrimSpace(out.Notes) == "" {
+		return 2.0
+	}
+	return 5.0
 }

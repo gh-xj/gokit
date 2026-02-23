@@ -1,0 +1,6 @@
+{
+  "schema_version": "v1",
+  "min_classic_score": 9.0,
+  "min_committee_score": 9.0,
+  "min_committee_minus_classic": 0.0
+}

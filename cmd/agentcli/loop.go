@@ -12,7 +12,7 @@ import (
 
 func runLoop(args []string) int {
 	if len(args) == 0 {
-		fmt.Fprintln(os.Stderr, "usage: agentcli loop [run|judge|autofix|all|compare] [--threshold score] [--max-iterations n] [--repo-root path] [--branch name] [--mode classic|committee] [--role-config file] [--seed n] [--budget n] [--run-a ref] [--run-b ref] [--api url]")
+		fmt.Fprintln(os.Stderr, "usage: agentcli loop [run|judge|autofix|all|compare|replay] [--threshold score] [--max-iterations n] [--repo-root path] [--branch name] [--mode classic|committee] [--role-config file] [--seed n] [--budget n] [--run-a ref] [--run-b ref] [--run-id id] [--iter n] [--format json|md] [--out path] [--api url]")
 		return agentcli.ExitUsage
 	}
 
@@ -38,9 +38,37 @@ func runLoop(args []string) int {
 			fmt.Fprintln(os.Stderr, err.Error())
 			return agentcli.ExitFailure
 		}
+		if path, err := harnessloop.WriteCompareOutput(opts.RepoRoot, report, opts.Format, opts.Out); err != nil {
+			fmt.Fprintln(os.Stderr, err.Error())
+			return agentcli.ExitFailure
+		} else if path != "" {
+			fmt.Fprintf(os.Stdout, "compare report written: %s\n", path)
+			return agentcli.ExitSuccess
+		}
 		out, _ := json.MarshalIndent(report, "", "  ")
 		fmt.Fprintln(os.Stdout, string(out))
 		return agentcli.ExitSuccess
+	}
+	if action == "replay" {
+		if opts.APIURL != "" {
+			fmt.Fprintln(os.Stderr, "replay action is local-only; remove --api")
+			return agentcli.ExitUsage
+		}
+		if opts.RunID == "" || opts.Iteration <= 0 {
+			fmt.Fprintln(os.Stderr, "replay action requires --run-id and --iter")
+			return agentcli.ExitUsage
+		}
+		report, err := harnessloop.ReplayIteration(opts.RepoRoot, opts.RunID, opts.Iteration, opts.Threshold)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err.Error())
+			return agentcli.ExitFailure
+		}
+		out, _ := json.MarshalIndent(report, "", "  ")
+		fmt.Fprintln(os.Stdout, string(out))
+		if report.ReplayJudge.Pass {
+			return agentcli.ExitSuccess
+		}
+		return agentcli.ExitFailure
 	}
 	if opts.APIURL != "" {
 		result, err = loopapi.Run(opts.APIURL, loopapi.RunRequest{
@@ -104,6 +132,10 @@ type loopFlags struct {
 	Budget        int
 	RunA          string
 	RunB          string
+	RunID         string
+	Iteration     int
+	Format        string
+	Out           string
 }
 
 func parseLoopFlags(args []string) (loopFlags, error) {
@@ -114,6 +146,7 @@ func parseLoopFlags(args []string) (loopFlags, error) {
 		Branch:        "autofix/onboarding-loop",
 		Mode:          "classic",
 		Budget:        1,
+		Format:        "json",
 	}
 
 	for i := 0; i < len(args); i++ {
@@ -191,6 +224,32 @@ func parseLoopFlags(args []string) (loopFlags, error) {
 				return loopFlags{}, fmt.Errorf("--run-b requires a value")
 			}
 			opts.RunB = args[i+1]
+			i++
+		case "--run-id":
+			if i+1 >= len(args) {
+				return loopFlags{}, fmt.Errorf("--run-id requires a value")
+			}
+			opts.RunID = args[i+1]
+			i++
+		case "--iter":
+			if i+1 >= len(args) {
+				return loopFlags{}, fmt.Errorf("--iter requires a value")
+			}
+			if _, err := fmt.Sscanf(args[i+1], "%d", &opts.Iteration); err != nil {
+				return loopFlags{}, fmt.Errorf("invalid --iter value")
+			}
+			i++
+		case "--format":
+			if i+1 >= len(args) {
+				return loopFlags{}, fmt.Errorf("--format requires a value")
+			}
+			opts.Format = args[i+1]
+			i++
+		case "--out":
+			if i+1 >= len(args) {
+				return loopFlags{}, fmt.Errorf("--out requires a value")
+			}
+			opts.Out = args[i+1]
 			i++
 		default:
 			return loopFlags{}, fmt.Errorf("unexpected argument: %s", args[i])

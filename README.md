@@ -184,6 +184,12 @@ Compare two experiment runs:
 agentcli loop compare --repo-root . --run-a <run-id-a> --run-b <run-id-b>
 ```
 
+Replay one recorded committee iteration:
+
+```bash
+agentcli loop replay --repo-root . --run-id <run-id> --iter 1
+```
+
 ## Examples
 
 Runnable examples:
