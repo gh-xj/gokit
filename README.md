@@ -59,6 +59,22 @@ go install github.com/gh-xj/agentcli-go/cmd/agentcli@main
 go get github.com/gh-xj/agentcli-go@main
 ```
 
+## Install Verification
+
+Check the binary is on PATH and runnable:
+
+```bash
+which agentcli
+agentcli --version
+agentcli --help
+```
+
+Expected result:
+
+- `which` prints a valid path
+- `--version` prints a semantic version or dev version
+- `--help` exits successfully and shows command usage
+
 ## Quickstart
 
 Create a new CLI:
@@ -99,6 +115,16 @@ agentcli add command --dir ./demo sync-data
 agentcli doctor --dir ./demo --json
 cd demo && task verify
 ```
+
+## Onboarding Benchmark
+
+Current internal partner onboarding baseline (`docs/partners/weekly-summary.md`):
+
+- median time to first scaffold success: 1 minute
+- median time to first `task verify` pass: 1 minute
+- median `doctor` iterations before green: 1
+
+If you are significantly above this baseline, treat it as onboarding friction and open an issue with your environment details.
 
 ## AI Prompt Starter
 
