@@ -21,7 +21,7 @@ It helps human + AI teams ship automation that stays contract-compliant over tim
 - Build CLIs quickly with deterministic scaffold output
 - Standardize verification with machine-readable contracts (`doctor --json`)
 - Keep CI and local checks aligned with one harness contract (`task ci`)
-- Enable human review with low-cognitive maintainer artifacts (`loop doctor`)
+- Enable human review with deterministic, machine-readable diagnostics
 
 ## Harness Engineering (Core Value)
 
@@ -29,8 +29,7 @@ It helps human + AI teams ship automation that stays contract-compliant over tim
 
 - deterministic scenario replay for onboarding and smoke validation
 - explicit score gates (`0..10`, threshold-based pass/fail)
-- role-based lab loops (planner/fixer/judger) when deep diagnosis is needed
-- reviewer-first maintainer outputs (`.docs/onboarding-loop/maintainer/latest-review.md`)
+- role-based diagnostics when deep analysis is needed
 - drift prevention: schema checks + docs/help consistency checks
 
 ## Why This Beats Script-Based Workflows
@@ -40,7 +39,7 @@ Compared with ad-hoc Bash/Python scripts, `agentcli-go` gives you:
 - compile-time safety instead of runtime surprises
 - stable command contracts instead of implicit behavior drift
 - deterministic verification (`task ci`, `task verify`) instead of best-effort checks
-- measurable quality loops (doctor/judge/benchmark) instead of ad-hoc fixes
+- measurable quality checks instead of ad-hoc fixes
 - a repeatable project shape that agents and humans can both maintain
 
 ## Installation
@@ -179,34 +178,6 @@ This repository enforces output contracts using:
 - positive fixtures: `testdata/contracts/*.ok.json`
 - negative fixtures: `testdata/contracts/*.bad-*.json`
 
-## Committee Verification Loop
-
-Run role-based planner/fixer/judger verification:
-
-```bash
-task loop:committee
-```
-
-Lean health check:
-
-```bash
-agentcli loop doctor --repo-root .
-```
-
-Maintainer review artifact: `.docs/onboarding-loop/maintainer/latest-review.md`.
-
-Compare two experiment runs:
-
-```bash
-agentcli loop lab compare --repo-root . --run-a <run-id-a> --run-b <run-id-b>
-```
-
-Replay one recorded committee iteration:
-
-```bash
-agentcli loop lab replay --repo-root . --run-id <run-id> --iter 1
-```
-
 ## Examples
 
 Runnable examples:
@@ -223,8 +194,6 @@ Simple docs entry points:
 
 - https://gh-xj.github.io/agentcli-go/
 - [`skills/verification-loop/SKILL.md`](./skills/verification-loop/SKILL.md)
-- [`docs/loop/quickstart.md`](./docs/loop/quickstart.md)
-- [`docs/loop/architecture.md`](./docs/loop/architecture.md)
 - [`docs/site/index.md`](./docs/site/index.md)
 - [`docs/site/getting-started.md`](./docs/site/getting-started.md)
 - [`docs/site/ai-agent-playbook.md`](./docs/site/ai-agent-playbook.md)
@@ -256,22 +225,3 @@ Automation:
 - CI uses Go module/build cache via `actions/setup-go`.
 - Weekly remote merged-branch cleanup workflow:
   `.github/workflows/branch-cleanup.yml`
-
-## Maintainer Release Flow
-
-```bash
-task release VERSION=v0.2.2
-```
-
-Requirements:
-
-- `docs/releases/v0.2.2.md` exists
-- GitHub CLI (`gh`) authenticated for `gh-xj/agentcli-go`
-
-Optional maintainer steps:
-
-```bash
-task release:verify VERSION=v0.2.2
-task release:tap VERSION=v0.2.2 TAP_PUSH=1
-task release:all VERSION=v0.2.2 TAP_PUSH=1
-```
