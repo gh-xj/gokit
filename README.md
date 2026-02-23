@@ -86,7 +86,7 @@ agentcli new --module example.com/mycli mycli
 Add a command:
 
 ```bash
-agentcli add command --dir ./mycli sync-data
+agentcli add command --dir ./mycli --preset file-sync sync-data
 ```
 
 Check contract health:
@@ -111,7 +111,7 @@ go install github.com/gh-xj/agentcli-go/cmd/agentcli@v0.2.0
 
 mkdir -p /tmp/agentcli-demo && cd /tmp/agentcli-demo
 agentcli new --module example.com/demo demo
-agentcli add command --dir ./demo sync-data
+agentcli add command --dir ./demo --preset file-sync sync-data
 agentcli doctor --dir ./demo --json
 cd demo && task verify
 ```
@@ -136,7 +136,7 @@ Goal: create a deterministic Go CLI and keep it contract-compliant.
 
 Do these steps in order and summarize outputs:
 1) agentcli new --module example.com/mycli mycli
-2) agentcli add command --dir ./mycli sync-data
+2) agentcli add command --dir ./mycli --preset file-sync sync-data
 3) agentcli doctor --dir ./mycli --json
 4) cd mycli && task verify
 
@@ -149,6 +149,12 @@ Optional: add a clearer command description during scaffold:
 ```bash
 agentcli add command --dir ./mycli --description "sync local files" sync-data
 ```
+
+Available presets for `agentcli add command --preset`:
+
+- `file-sync`
+- `http-client`
+- `deploy-helper`
 
 Reusable prompt: [`prompts/agentcli-onboarding.prompt.md`](./prompts/agentcli-onboarding.prompt.md)
 

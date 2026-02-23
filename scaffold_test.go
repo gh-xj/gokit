@@ -43,7 +43,7 @@ func TestScaffoldAddCommandWiresRoot(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ScaffoldNew failed: %v", err)
 	}
-	if err := ScaffoldAddCommand(projectPath, "sync-data", "sync files from source to target"); err != nil {
+	if err := ScaffoldAddCommand(projectPath, "sync-data", "sync files from source to target", ""); err != nil {
 		t.Fatalf("ScaffoldAddCommand failed: %v", err)
 	}
 
@@ -154,7 +154,7 @@ func TestScaffoldAddCommandUsesCobraxSignature(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ScaffoldNew failed: %v", err)
 	}
-	if err := ScaffoldAddCommand(projectPath, "sync-data", "sync data command"); err != nil {
+	if err := ScaffoldAddCommand(projectPath, "sync-data", "sync data command", ""); err != nil {
 		t.Fatalf("ScaffoldAddCommand failed: %v", err)
 	}
 
@@ -185,7 +185,7 @@ func TestScaffoldAddCommandUsesDefaultDescriptionWhenMissing(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ScaffoldNew failed: %v", err)
 	}
-	if err := ScaffoldAddCommand(projectPath, "sync-data", ""); err != nil {
+	if err := ScaffoldAddCommand(projectPath, "sync-data", "", ""); err != nil {
 		t.Fatalf("ScaffoldAddCommand failed: %v", err)
 	}
 
@@ -195,5 +195,39 @@ func TestScaffoldAddCommandUsesDefaultDescriptionWhenMissing(t *testing.T) {
 	}
 	if !strings.Contains(string(cmdBody), `Description: "describe sync-data"`) {
 		t.Fatalf("expected default description in command body: %s", string(cmdBody))
+	}
+}
+
+func TestScaffoldAddCommandUsesPresetDescription(t *testing.T) {
+	root := t.TempDir()
+	projectPath, err := ScaffoldNew(root, "samplecli", "example.com/samplecli")
+	if err != nil {
+		t.Fatalf("ScaffoldNew failed: %v", err)
+	}
+	if err := ScaffoldAddCommand(projectPath, "sync-data", "", "file-sync"); err != nil {
+		t.Fatalf("ScaffoldAddCommand failed: %v", err)
+	}
+
+	cmdBody, err := os.ReadFile(filepath.Join(projectPath, "cmd", "sync-data.go"))
+	if err != nil {
+		t.Fatalf("read command file: %v", err)
+	}
+	if !strings.Contains(string(cmdBody), `Description: "sync files between source and destination"`) {
+		t.Fatalf("expected preset description in command body: %s", string(cmdBody))
+	}
+}
+
+func TestScaffoldAddCommandRejectsUnknownPreset(t *testing.T) {
+	root := t.TempDir()
+	projectPath, err := ScaffoldNew(root, "samplecli", "example.com/samplecli")
+	if err != nil {
+		t.Fatalf("ScaffoldNew failed: %v", err)
+	}
+	err = ScaffoldAddCommand(projectPath, "sync-data", "", "unknown")
+	if err == nil {
+		t.Fatal("expected error for unknown preset")
+	}
+	if !strings.Contains(err.Error(), "invalid preset") {
+		t.Fatalf("unexpected error: %v", err)
 	}
 }

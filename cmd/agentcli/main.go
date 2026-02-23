@@ -81,7 +81,7 @@ func runNew(args []string) int {
 
 func runAdd(args []string) int {
 	if len(args) == 0 {
-		fmt.Fprintln(os.Stderr, "usage: agentcli add command [--dir path] [--description text] <name>")
+		fmt.Fprintln(os.Stderr, "usage: agentcli add command [--dir path] [--description text] [--preset name] <name>")
 		return agentcli.ExitUsage
 	}
 	if args[0] != "command" {
@@ -92,6 +92,7 @@ func runAdd(args []string) int {
 	rootDir := "."
 	name := ""
 	description := ""
+	preset := ""
 	for i := 1; i < len(args); i++ {
 		switch args[i] {
 		case "--dir":
@@ -108,6 +109,13 @@ func runAdd(args []string) int {
 			}
 			description = args[i+1]
 			i++
+		case "--preset":
+			if i+1 >= len(args) {
+				fmt.Fprintln(os.Stderr, "--preset requires a value")
+				return agentcli.ExitUsage
+			}
+			preset = args[i+1]
+			i++
 		default:
 			if name == "" {
 				name = args[i]
@@ -119,10 +127,10 @@ func runAdd(args []string) int {
 	}
 
 	if name == "" {
-		fmt.Fprintln(os.Stderr, "usage: agentcli add command [--dir path] [--description text] <name>")
+		fmt.Fprintln(os.Stderr, "usage: agentcli add command [--dir path] [--description text] [--preset name] <name>")
 		return agentcli.ExitUsage
 	}
-	if err := agentcli.ScaffoldAddCommand(rootDir, name, description); err != nil {
+	if err := agentcli.ScaffoldAddCommand(rootDir, name, description, preset); err != nil {
 		fmt.Fprintln(os.Stderr, err.Error())
 		return agentcli.ExitFailure
 	}
@@ -179,6 +187,9 @@ func printUsage() {
 	fmt.Fprintln(os.Stderr, "agentcli scaffold CLI")
 	fmt.Fprintln(os.Stderr, "Usage:")
 	fmt.Fprintln(os.Stderr, "  agentcli new [--dir path] [--module module/path] <name>")
-	fmt.Fprintln(os.Stderr, "  agentcli add command [--dir path] [--description text] <name>")
+	fmt.Fprintln(os.Stderr, "  agentcli add command [--dir path] [--description text] [--preset name] <name>")
 	fmt.Fprintln(os.Stderr, "  agentcli doctor [--dir path] [--json]")
+	fmt.Fprintln(os.Stderr, "")
+	fmt.Fprintln(os.Stderr, "Presets for add command:")
+	fmt.Fprintln(os.Stderr, "  file-sync, http-client, deploy-helper")
 }

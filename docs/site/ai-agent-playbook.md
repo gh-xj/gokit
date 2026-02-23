@@ -19,7 +19,7 @@ Goal: create a deterministic Go CLI and keep it contract-compliant.
 
 Do these steps in order:
 1) agentcli new --module example.com/mycli mycli
-2) agentcli add command --dir ./mycli sync-data
+2) agentcli add command --dir ./mycli --preset file-sync sync-data
 3) agentcli doctor --dir ./mycli --json
 4) cd mycli && task verify
 

@@ -15,6 +15,11 @@ import (
 const rootCommandMarker = "// agentcli:add-command"
 
 var validCommandName = regexp.MustCompile(`^[a-z][a-z0-9-]*$`)
+var commandPresets = map[string]string{
+	"file-sync":     "sync files between source and destination",
+	"http-client":   "send HTTP requests to a target endpoint",
+	"deploy-helper": "run deterministic deploy workflow checks",
+}
 
 type templateData struct {
 	Module           string
@@ -93,7 +98,7 @@ func ScaffoldNew(baseDir, name, module string) (string, error) {
 }
 
 // ScaffoldAddCommand creates a command file and wires it into cmd/root.go.
-func ScaffoldAddCommand(rootDir, commandName, description string) error {
+func ScaffoldAddCommand(rootDir, commandName, description, preset string) error {
 	if strings.TrimSpace(rootDir) == "" {
 		rootDir = "."
 	}
@@ -101,6 +106,16 @@ func ScaffoldAddCommand(rootDir, commandName, description string) error {
 		return fmt.Errorf("invalid command name %q: use kebab-case [a-z0-9-]", commandName)
 	}
 	description = strings.TrimSpace(description)
+	preset = strings.TrimSpace(preset)
+	if preset != "" {
+		presetDescription, ok := commandPresets[preset]
+		if !ok {
+			return fmt.Errorf("invalid preset %q: valid presets are %s", preset, strings.Join(sortedPresetNames(), ", "))
+		}
+		if description == "" {
+			description = presetDescription
+		}
+	}
 	if description == "" {
 		description = fmt.Sprintf("describe %s", commandName)
 	}
@@ -134,6 +149,15 @@ func ScaffoldAddCommand(rootDir, commandName, description string) error {
 	}
 	updated := text[:idx] + registerLine + "\n\t" + text[idx:]
 	return os.WriteFile(rootFile, []byte(updated), 0644)
+}
+
+func sortedPresetNames() []string {
+	names := make([]string, 0, len(commandPresets))
+	for name := range commandPresets {
+		names = append(names, name)
+	}
+	slices.Sort(names)
+	return names
 }
 
 // Doctor checks whether a project follows the golden scaffold contract.

@@ -42,3 +42,56 @@ func TestRunAddCommandDescriptionRequiresValue(t *testing.T) {
 		t.Fatalf("unexpected exit code: got %d want %d", exitCode, agentcli.ExitUsage)
 	}
 }
+
+func TestRunAddCommandWithPreset(t *testing.T) {
+	root := t.TempDir()
+	projectPath, err := agentcli.ScaffoldNew(root, "samplecli", "example.com/samplecli")
+	if err != nil {
+		t.Fatalf("ScaffoldNew failed: %v", err)
+	}
+
+	exitCode := run([]string{
+		"add",
+		"command",
+		"--dir", projectPath,
+		"--preset", "file-sync",
+		"sync-data",
+	})
+	if exitCode != agentcli.ExitSuccess {
+		t.Fatalf("unexpected exit code: got %d want %d", exitCode, agentcli.ExitSuccess)
+	}
+
+	content, err := os.ReadFile(filepath.Join(projectPath, "cmd", "sync-data.go"))
+	if err != nil {
+		t.Fatalf("read generated command file: %v", err)
+	}
+	if !strings.Contains(string(content), `Description: "sync files between source and destination"`) {
+		t.Fatalf("expected preset description in generated command file: %s", string(content))
+	}
+}
+
+func TestRunAddCommandPresetRequiresValue(t *testing.T) {
+	exitCode := run([]string{"add", "command", "--preset"})
+	if exitCode != agentcli.ExitUsage {
+		t.Fatalf("unexpected exit code: got %d want %d", exitCode, agentcli.ExitUsage)
+	}
+}
+
+func TestRunAddCommandRejectsUnknownPreset(t *testing.T) {
+	root := t.TempDir()
+	projectPath, err := agentcli.ScaffoldNew(root, "samplecli", "example.com/samplecli")
+	if err != nil {
+		t.Fatalf("ScaffoldNew failed: %v", err)
+	}
+
+	exitCode := run([]string{
+		"add",
+		"command",
+		"--dir", projectPath,
+		"--preset", "unknown",
+		"sync-data",
+	})
+	if exitCode != agentcli.ExitFailure {
+		t.Fatalf("unexpected exit code: got %d want %d", exitCode, agentcli.ExitFailure)
+	}
+}

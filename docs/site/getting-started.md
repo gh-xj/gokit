@@ -27,7 +27,7 @@ agentcli --help
 
 ```bash
 agentcli new --module example.com/mycli mycli
-agentcli add command --dir ./mycli --description "sync local files" sync-data
+agentcli add command --dir ./mycli --preset file-sync sync-data
 agentcli doctor --dir ./mycli --json
 ```
 
@@ -47,7 +47,7 @@ brew install agentcli
 
 mkdir -p /tmp/agentcli-demo && cd /tmp/agentcli-demo
 agentcli new --module example.com/demo demo
-agentcli add command --dir ./demo sync-data
+agentcli add command --dir ./demo --preset file-sync sync-data
 agentcli doctor --dir ./demo --json
 cd demo && task verify
 ```
