@@ -249,6 +249,13 @@ Recommended local guardrails:
 
 - `task hygiene` to catch junk files, leaked keys/tokens, and history artifacts
 - `task hooks:install` to enable pre-commit hygiene checks
+- `task lint:strict` for stricter advisory linting before release/major refactors
+
+Automation:
+
+- CI uses Go module/build cache via `actions/setup-go`.
+- Weekly remote merged-branch cleanup workflow:
+  `.github/workflows/branch-cleanup.yml`
 
 ## Maintainer Release Flow
 

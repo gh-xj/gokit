@@ -1,0 +1,88 @@
+name: Branch Cleanup
+
+on:
+  schedule:
+    - cron: "17 3 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: read
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete merged branches (except protected/open PR branches)
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const protectedNames = new Set(["main", "master", "develop"]);
+
+            const repoMeta = await github.rest.repos.get({ owner, repo });
+            const defaultBranch = repoMeta.data.default_branch || "main";
+            protectedNames.add(defaultBranch);
+
+            const branches = await github.paginate(github.rest.repos.listBranches, {
+              owner,
+              repo,
+              per_page: 100
+            });
+
+            let deleted = 0;
+            for (const branch of branches) {
+              const name = branch.name;
+              if (protectedNames.has(name) || branch.protected) {
+                core.info(`skip protected: ${name}`);
+                continue;
+              }
+              if (name.startsWith("release/") || name.startsWith("hotfix/")) {
+                core.info(`skip release/hotfix: ${name}`);
+                continue;
+              }
+
+              const prs = await github.rest.pulls.list({
+                owner,
+                repo,
+                head: `${owner}:${name}`,
+                state: "open",
+                per_page: 1
+              });
+              if (prs.data.length > 0) {
+                core.info(`skip open PR branch: ${name}`);
+                continue;
+              }
+
+              let compare;
+              try {
+                compare = await github.rest.repos.compareCommitsWithBasehead({
+                  owner,
+                  repo,
+                  basehead: `${name}...${defaultBranch}`
+                });
+              } catch (err) {
+                core.warning(`compare failed for ${name}: ${err.message}`);
+                continue;
+              }
+
+              // branch fully merged into default branch
+              if (compare.data.status === "behind" || compare.data.status === "identical") {
+                try {
+                  await github.rest.git.deleteRef({
+                    owner,
+                    repo,
+                    ref: `heads/${name}`
+                  });
+                  deleted += 1;
+                  core.info(`deleted merged branch: ${name}`);
+                } catch (err) {
+                  core.warning(`failed to delete ${name}: ${err.message}`);
+                }
+              } else {
+                core.info(`keep not-merged branch: ${name} (${compare.data.status})`);
+              }
+            }
+
+            core.notice(`branch cleanup completed, deleted=${deleted}`);
