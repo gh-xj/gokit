@@ -203,6 +203,7 @@ Simple docs entry points:
 - [`docs/site/index.md`](./docs/site/index.md)
 - [`docs/site/getting-started.md`](./docs/site/getting-started.md)
 - [`docs/site/ai-agent-playbook.md`](./docs/site/ai-agent-playbook.md)
+- [`docs/site/architecture-lite.d2`](./docs/site/architecture-lite.d2)
 
 ## Project Health
 
