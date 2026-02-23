@@ -87,29 +87,37 @@ Expected result:
 - `--version` prints a semantic version or dev version
 - `--help` exits successfully and shows command usage
 
-## Quickstart
+## AI Prompt Starter
 
-Create a new CLI:
+Copy-paste into your coding agent:
+
+```text
+You are helping me onboard to AgentCLI -GO.
+Goal: create a deterministic Go CLI and keep it contract-compliant.
+
+Do these steps in order and summarize outputs:
+1) Install AgentCLI:
+   go install github.com/gh-xj/agentcli-go/cmd/agentcli@v0.2.1
+2) Familiarize with the CLI:
+   agentcli --help
+3) Verify binary and toolchain:
+   which agentcli
+   agentcli --version
+4) agentcli new --module example.com/mycli mycli
+5) agentcli add command --dir ./mycli --preset file-sync sync-data
+6) agentcli doctor --dir ./mycli --json
+7) cd mycli && task verify
+
+If anything fails, fix root cause and re-run verification.
+Do not skip contract checks.
+```
+
+## Quickstart
 
 ```bash
 agentcli new --module example.com/mycli mycli
-```
-
-Add a command:
-
-```bash
 agentcli add command --dir ./mycli --preset file-sync sync-data
-```
-
-Check contract health:
-
-```bash
 agentcli doctor --dir ./mycli --json
-```
-
-Run full verification:
-
-```bash
 cd mycli
 task verify
 ```
@@ -122,55 +130,12 @@ set -e
 go install github.com/gh-xj/agentcli-go/cmd/agentcli@v0.2.1
 
 mkdir -p /tmp/agentcli-demo && cd /tmp/agentcli-demo
+agentcli --help
 agentcli new --module example.com/demo demo
 agentcli add command --dir ./demo --preset file-sync sync-data
 agentcli doctor --dir ./demo --json
 cd demo && task verify
 ```
-
-## AI Prompt Starter
-
-Copy-paste into your coding agent:
-
-```text
-You are helping me onboard to agentcli-go.
-Goal: create a deterministic Go CLI and keep it contract-compliant.
-
-Do these steps in order and summarize outputs:
-1) Install agentcli:
-   go install github.com/gh-xj/agentcli-go/cmd/agentcli@v0.2.1
-2) Verify binary and toolchain:
-   which agentcli
-   agentcli --version
-   agentcli --help
-3) agentcli new --module example.com/mycli mycli
-4) agentcli add command --dir ./mycli --preset file-sync sync-data
-5) agentcli doctor --dir ./mycli --json
-6) cd mycli && task verify
-
-If anything fails, fix root cause and re-run verification.
-Do not skip contract checks.
-```
-
-Optional: add a clearer command description during scaffold:
-
-```bash
-agentcli add command --dir ./mycli --description "sync local files" sync-data
-```
-
-Available presets for `agentcli add command --preset`:
-
-- `file-sync`
-- `http-client`
-- `deploy-helper`
-
-List presets from CLI:
-
-```bash
-agentcli add command --list-presets
-```
-
-Reusable prompt: [`prompts/agentcli-onboarding.prompt.md`](./prompts/agentcli-onboarding.prompt.md)
 
 ## Core Capabilities
 
