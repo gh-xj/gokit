@@ -2,6 +2,15 @@
 
 ## Install
 
+Homebrew (recommended):
+
+```bash
+brew tap gh-xj/tap
+brew install agentcli
+```
+
+Or with Go:
+
 ```bash
 go install github.com/gh-xj/agentcli-go/cmd/agentcli@v0.2.0
 ```
@@ -19,4 +28,18 @@ agentcli doctor --dir ./mycli --json
 ```bash
 cd mycli
 task verify
+```
+
+## First 5 Minutes Script
+
+```bash
+set -e
+brew tap gh-xj/tap
+brew install agentcli
+
+mkdir -p /tmp/agentcli-demo && cd /tmp/agentcli-demo
+agentcli new --module example.com/demo demo
+agentcli add command --dir ./demo sync-data
+agentcli doctor --dir ./demo --json
+cd demo && task verify
 ```

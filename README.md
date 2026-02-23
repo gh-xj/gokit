@@ -22,7 +22,14 @@ Scaffold fast, verify by contract, ship with confidence.
 
 ### Stable Release (Recommended)
 
-Install the scaffold CLI:
+Install the scaffold CLI (Homebrew):
+
+```bash
+brew tap gh-xj/tap
+brew install agentcli
+```
+
+Install the scaffold CLI (`go install`):
 
 ```bash
 go install github.com/gh-xj/agentcli-go/cmd/agentcli@v0.2.0
@@ -75,6 +82,22 @@ Run full project verification:
 ```bash
 cd mycli
 task verify
+```
+
+## First 5 Minutes
+
+Copy-paste this end-to-end:
+
+```bash
+set -e
+brew tap gh-xj/tap
+brew install agentcli
+
+mkdir -p /tmp/agentcli-demo && cd /tmp/agentcli-demo
+agentcli new --module example.com/demo demo
+agentcli add command --dir ./demo sync-data
+agentcli doctor --dir ./demo --json
+cd demo && task verify
 ```
 
 ## Documentation
