@@ -132,3 +132,20 @@ func TestRunAddCommandUsesPresetSpecificStub(t *testing.T) {
 		t.Fatalf("expected preset-specific message in generated command file: %s", string(content))
 	}
 }
+
+func TestRunLoopUnknownAction(t *testing.T) {
+	exitCode := run([]string{"loop", "unknown"})
+	if exitCode != agentcli.ExitUsage {
+		t.Fatalf("unexpected exit code: got %d want %d", exitCode, agentcli.ExitUsage)
+	}
+}
+
+func TestParseLoopFlags(t *testing.T) {
+	repoRoot, threshold, maxIterations, err := parseLoopFlags([]string{"--repo-root", ".", "--threshold", "8.5", "--max-iterations", "2"})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if repoRoot != "." || threshold != 8.5 || maxIterations != 2 {
+		t.Fatalf("unexpected parse values: %q %.2f %d", repoRoot, threshold, maxIterations)
+	}
+}
