@@ -19,6 +19,7 @@ var validCommandName = regexp.MustCompile(`^[a-z][a-z0-9-]*$`)
 type templateData struct {
 	Module           string
 	Name             string
+	Description      string
 	GokitReplaceLine string
 }
 
@@ -92,12 +93,16 @@ func ScaffoldNew(baseDir, name, module string) (string, error) {
 }
 
 // ScaffoldAddCommand creates a command file and wires it into cmd/root.go.
-func ScaffoldAddCommand(rootDir, commandName string) error {
+func ScaffoldAddCommand(rootDir, commandName, description string) error {
 	if strings.TrimSpace(rootDir) == "" {
 		rootDir = "."
 	}
 	if !validCommandName.MatchString(commandName) {
 		return fmt.Errorf("invalid command name %q: use kebab-case [a-z0-9-]", commandName)
+	}
+	description = strings.TrimSpace(description)
+	if description == "" {
+		description = fmt.Sprintf("describe %s", commandName)
 	}
 
 	cmdFile := filepath.Join(rootDir, "cmd", commandName+".go")
@@ -105,7 +110,11 @@ func ScaffoldAddCommand(rootDir, commandName string) error {
 		return fmt.Errorf("command file already exists: %s", cmdFile)
 	}
 	funcName := kebabToCamel(commandName)
-	if err := writeTemplate(cmdFile, addCommandTpl, templateData{Name: commandName, Module: funcName}); err != nil {
+	if err := writeTemplate(cmdFile, addCommandTpl, templateData{
+		Name:        commandName,
+		Module:      funcName,
+		Description: description,
+	}); err != nil {
 		return err
 	}
 
@@ -369,7 +378,7 @@ func init() {
 
 func {{.Module}}Command() command {
 	return command{
-		Description: "describe {{.Name}}",
+		Description: {{printf "%q" .Description}},
 		Run: func(app *agentcli.AppContext, args []string) error {
 			if jsonOutput, _ := app.Values["json"].(bool); jsonOutput {
 				_, err := fmt.Fprintln(os.Stdout, "{\"command\":\"{{.Name}}\",\"ok\":true}")

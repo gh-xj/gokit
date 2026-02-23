@@ -144,6 +144,12 @@ If anything fails, fix root cause and re-run verification.
 Do not skip contract checks.
 ```
 
+Optional: add a clearer command description during scaffold:
+
+```bash
+agentcli add command --dir ./mycli --description "sync local files" sync-data
+```
+
 Reusable prompt: [`prompts/agentcli-onboarding.prompt.md`](./prompts/agentcli-onboarding.prompt.md)
 
 ## Core Capabilities

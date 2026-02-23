@@ -26,10 +26,17 @@ What I want feedback on:
 
 Quick start:
 ```bash
-go run ./cmd/agentcli new --module example.com/mycli mycli
-go run ./cmd/agentcli add command --dir ./mycli sync-data
-go run ./cmd/agentcli doctor --dir ./mycli --json
+go install github.com/gh-xj/agentcli-go/cmd/agentcli@v0.2.0
+agentcli new --module example.com/mycli mycli
+agentcli add command --dir ./mycli --description "sync local files" sync-data
+agentcli doctor --dir ./mycli --json
+cd mycli && task verify
 ```
+
+Current onboarding baseline (internal partner runs):
+- first scaffold success: ~1 minute
+- first `task verify` pass: ~1 minute
+- median `doctor` iterations before green: 1
 
 Punch line:
 Deterministic Go CLIs that AI agents can safely evolve.

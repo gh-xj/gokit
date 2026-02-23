@@ -43,7 +43,7 @@ func TestScaffoldAddCommandWiresRoot(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ScaffoldNew failed: %v", err)
 	}
-	if err := ScaffoldAddCommand(projectPath, "sync-data"); err != nil {
+	if err := ScaffoldAddCommand(projectPath, "sync-data", "sync files from source to target"); err != nil {
 		t.Fatalf("ScaffoldAddCommand failed: %v", err)
 	}
 
@@ -53,6 +53,9 @@ func TestScaffoldAddCommandWiresRoot(t *testing.T) {
 	}
 	if !strings.Contains(string(cmdBody), "func SyncDataCommand() command") {
 		t.Fatalf("unexpected command function name: %s", string(cmdBody))
+	}
+	if !strings.Contains(string(cmdBody), `Description: "sync files from source to target"`) {
+		t.Fatalf("expected custom description in command body: %s", string(cmdBody))
 	}
 
 	rootBody, err := os.ReadFile(filepath.Join(projectPath, "cmd", "root.go"))
@@ -151,7 +154,7 @@ func TestScaffoldAddCommandUsesCobraxSignature(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ScaffoldNew failed: %v", err)
 	}
-	if err := ScaffoldAddCommand(projectPath, "sync-data"); err != nil {
+	if err := ScaffoldAddCommand(projectPath, "sync-data", "sync data command"); err != nil {
 		t.Fatalf("ScaffoldAddCommand failed: %v", err)
 	}
 
@@ -173,5 +176,24 @@ func TestDoctorReportsCobraxProjectAsOK(t *testing.T) {
 	report := Doctor(projectPath)
 	if !report.OK {
 		t.Fatalf("expected doctor OK for cobrax runtime, findings: %+v", report.Findings)
+	}
+}
+
+func TestScaffoldAddCommandUsesDefaultDescriptionWhenMissing(t *testing.T) {
+	root := t.TempDir()
+	projectPath, err := ScaffoldNew(root, "samplecli", "example.com/samplecli")
+	if err != nil {
+		t.Fatalf("ScaffoldNew failed: %v", err)
+	}
+	if err := ScaffoldAddCommand(projectPath, "sync-data", ""); err != nil {
+		t.Fatalf("ScaffoldAddCommand failed: %v", err)
+	}
+
+	cmdBody, err := os.ReadFile(filepath.Join(projectPath, "cmd", "sync-data.go"))
+	if err != nil {
+		t.Fatalf("read command file: %v", err)
+	}
+	if !strings.Contains(string(cmdBody), `Description: "describe sync-data"`) {
+		t.Fatalf("expected default description in command body: %s", string(cmdBody))
 	}
 }

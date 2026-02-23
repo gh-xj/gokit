@@ -27,7 +27,7 @@ agentcli --help
 
 ```bash
 agentcli new --module example.com/mycli mycli
-agentcli add command --dir ./mycli sync-data
+agentcli add command --dir ./mycli --description "sync local files" sync-data
 agentcli doctor --dir ./mycli --json
 ```
 
