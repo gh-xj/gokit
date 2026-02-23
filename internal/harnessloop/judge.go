@@ -15,6 +15,12 @@ func Judge(r ScenarioResult, findings []Finding, threshold float64) JudgeScore {
 		case "step_failed", "generated_go_not_formatted":
 			hardFailures++
 			penalty += 0.7
+		case "onboarding_install_missing":
+			hardFailures++
+			penalty += 2.5
+		case "onboarding_install_verify_missing":
+			counter++
+			penalty += 1.2
 		case "counter_intuitive_abort":
 			counter++
 			penalty += 0.3

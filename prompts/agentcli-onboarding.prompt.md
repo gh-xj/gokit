@@ -7,18 +7,23 @@ You are helping me onboard to agentcli-go.
 Goal: create a deterministic Go CLI and keep it contract-compliant.
 
 Please execute this exact flow:
-1) Validate toolchain (Go, task, agentcli).
-2) Create project:
+1) Install agentcli:
+   go install github.com/gh-xj/agentcli-go/cmd/agentcli@v0.2.1
+2) Validate binary and toolchain:
+   which agentcli
+   agentcli --version
+   agentcli --help
+3) Create project:
    agentcli new --module example.com/mycli mycli
-3) Add command:
+4) Add command:
    agentcli add command --dir ./mycli --preset file-sync sync-data
    Optional discovery:
    agentcli add command --list-presets
-4) Validate project contract:
+5) Validate project contract:
    agentcli doctor --dir ./mycli --json
-5) Run full verification:
+6) Run full verification:
    cd mycli && task verify
-6) If any step fails:
+7) If any step fails:
    - explain root cause briefly
    - apply minimal fix
    - re-run failed verification

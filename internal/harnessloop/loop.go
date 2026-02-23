@@ -41,6 +41,7 @@ func RunLoop(cfg Config) (RunResult, error) {
 			return RunResult{}, err
 		}
 		findings := DetectFindings(sr)
+		findings = append(findings, CheckOnboardingInstallReadiness(cfg.RepoRoot)...)
 		judge := Judge(sr, findings, cfg.Threshold)
 		run := RunResult{
 			SchemaVersion: "v1",

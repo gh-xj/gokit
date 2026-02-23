@@ -137,10 +137,16 @@ You are helping me onboard to agentcli-go.
 Goal: create a deterministic Go CLI and keep it contract-compliant.
 
 Do these steps in order and summarize outputs:
-1) agentcli new --module example.com/mycli mycli
-2) agentcli add command --dir ./mycli --preset file-sync sync-data
-3) agentcli doctor --dir ./mycli --json
-4) cd mycli && task verify
+1) Install agentcli:
+   go install github.com/gh-xj/agentcli-go/cmd/agentcli@v0.2.1
+2) Verify binary and toolchain:
+   which agentcli
+   agentcli --version
+   agentcli --help
+3) agentcli new --module example.com/mycli mycli
+4) agentcli add command --dir ./mycli --preset file-sync sync-data
+5) agentcli doctor --dir ./mycli --json
+6) cd mycli && task verify
 
 If anything fails, fix root cause and re-run verification.
 Do not skip contract checks.
