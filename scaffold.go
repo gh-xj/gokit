@@ -25,6 +25,7 @@ type templateData struct {
 	Module           string
 	Name             string
 	Description      string
+	Preset           string
 	GokitReplaceLine string
 }
 
@@ -129,6 +130,7 @@ func ScaffoldAddCommand(rootDir, commandName, description, preset string) error 
 		Name:        commandName,
 		Module:      funcName,
 		Description: description,
+		Preset:      preset,
 	}); err != nil {
 		return err
 	}
@@ -149,6 +151,17 @@ func ScaffoldAddCommand(rootDir, commandName, description, preset string) error 
 	}
 	updated := text[:idx] + registerLine + "\n\t" + text[idx:]
 	return os.WriteFile(rootFile, []byte(updated), 0644)
+}
+
+// CommandPresetNames returns the supported preset names in sorted order.
+func CommandPresetNames() []string {
+	return sortedPresetNames()
+}
+
+// CommandPresetDescription returns the description for a preset.
+func CommandPresetDescription(name string) (string, bool) {
+	description, ok := commandPresets[name]
+	return description, ok
 }
 
 func sortedPresetNames() []string {
@@ -391,6 +404,7 @@ func Execute(args []string) int {
 const addCommandTpl = `package cmd
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 
@@ -404,11 +418,25 @@ func {{.Module}}Command() command {
 	return command{
 		Description: {{printf "%q" .Description}},
 		Run: func(app *agentcli.AppContext, args []string) error {
-			if jsonOutput, _ := app.Values["json"].(bool); jsonOutput {
-				_, err := fmt.Fprintln(os.Stdout, "{\"command\":\"{{.Name}}\",\"ok\":true}")
-				return err
+			preset := {{printf "%q" .Preset}}
+			if preset == "" {
+				preset = "custom"
 			}
-			_, err := fmt.Fprintf(os.Stdout, "{{.Name}} executed with %d args\n", len(args))
+			if jsonOutput, _ := app.Values["json"].(bool); jsonOutput {
+				enc := json.NewEncoder(os.Stdout)
+				enc.SetIndent("", "  ")
+				return enc.Encode(map[string]any{
+					"command": "{{.Name}}",
+					"preset":  preset,
+					"ok":      true,
+					"args":    len(args),
+				})
+			}
+			{{if eq .Preset "file-sync"}}_, err := fmt.Fprintf(os.Stdout, "{{.Name}} preset=file-sync: synced %d items\n", len(args))
+			{{else if eq .Preset "http-client"}}_, err := fmt.Fprintf(os.Stdout, "{{.Name}} preset=http-client: request plan ready with %d args\n", len(args))
+			{{else if eq .Preset "deploy-helper"}}_, err := fmt.Fprintf(os.Stdout, "{{.Name}} preset=deploy-helper: deploy checks passed for %d args\n", len(args))
+			{{else}}_, err := fmt.Fprintf(os.Stdout, "{{.Name}} executed with %d args\n", len(args))
+			{{end}}
 			return err
 		},
 	}

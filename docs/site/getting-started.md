@@ -31,6 +31,12 @@ agentcli add command --dir ./mycli --preset file-sync sync-data
 agentcli doctor --dir ./mycli --json
 ```
 
+Available presets:
+
+```bash
+agentcli add command --list-presets
+```
+
 ## Verify
 
 ```bash

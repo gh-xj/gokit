@@ -156,6 +156,12 @@ Available presets for `agentcli add command --preset`:
 - `http-client`
 - `deploy-helper`
 
+List presets from CLI:
+
+```bash
+agentcli add command --list-presets
+```
+
 Reusable prompt: [`prompts/agentcli-onboarding.prompt.md`](./prompts/agentcli-onboarding.prompt.md)
 
 ## Core Capabilities

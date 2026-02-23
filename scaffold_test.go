@@ -215,6 +215,12 @@ func TestScaffoldAddCommandUsesPresetDescription(t *testing.T) {
 	if !strings.Contains(string(cmdBody), `Description: "sync files between source and destination"`) {
 		t.Fatalf("expected preset description in command body: %s", string(cmdBody))
 	}
+	if !strings.Contains(string(cmdBody), `preset := "file-sync"`) {
+		t.Fatalf("expected preset marker in command body: %s", string(cmdBody))
+	}
+	if !strings.Contains(string(cmdBody), "preset=file-sync: synced") {
+		t.Fatalf("expected preset-specific output in command body: %s", string(cmdBody))
+	}
 }
 
 func TestScaffoldAddCommandRejectsUnknownPreset(t *testing.T) {
@@ -229,5 +235,18 @@ func TestScaffoldAddCommandRejectsUnknownPreset(t *testing.T) {
 	}
 	if !strings.Contains(err.Error(), "invalid preset") {
 		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+func TestCommandPresetNamesReturnsSortedNames(t *testing.T) {
+	got := CommandPresetNames()
+	want := []string{"deploy-helper", "file-sync", "http-client"}
+	if len(got) != len(want) {
+		t.Fatalf("unexpected length: got %d want %d", len(got), len(want))
+	}
+	for i := range want {
+		if got[i] != want[i] {
+			t.Fatalf("unexpected preset at %d: got %q want %q", i, got[i], want[i])
+		}
 	}
 }

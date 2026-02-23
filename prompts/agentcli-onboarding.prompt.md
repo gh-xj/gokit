@@ -12,6 +12,8 @@ Please execute this exact flow:
    agentcli new --module example.com/mycli mycli
 3) Add command:
    agentcli add command --dir ./mycli --preset file-sync sync-data
+   Optional discovery:
+   agentcli add command --list-presets
 4) Validate project contract:
    agentcli doctor --dir ./mycli --json
 5) Run full verification:

@@ -81,7 +81,7 @@ func runNew(args []string) int {
 
 func runAdd(args []string) int {
 	if len(args) == 0 {
-		fmt.Fprintln(os.Stderr, "usage: agentcli add command [--dir path] [--description text] [--preset name] <name>")
+		fmt.Fprintln(os.Stderr, "usage: agentcli add command [--dir path] [--description text] [--preset name] [--list-presets] <name>")
 		return agentcli.ExitUsage
 	}
 	if args[0] != "command" {
@@ -93,6 +93,7 @@ func runAdd(args []string) int {
 	name := ""
 	description := ""
 	preset := ""
+	listPresets := false
 	for i := 1; i < len(args); i++ {
 		switch args[i] {
 		case "--dir":
@@ -116,6 +117,8 @@ func runAdd(args []string) int {
 			}
 			preset = args[i+1]
 			i++
+		case "--list-presets":
+			listPresets = true
 		default:
 			if name == "" {
 				name = args[i]
@@ -126,8 +129,16 @@ func runAdd(args []string) int {
 		}
 	}
 
+	if listPresets {
+		for _, presetName := range agentcli.CommandPresetNames() {
+			description, _ := agentcli.CommandPresetDescription(presetName)
+			fmt.Fprintf(os.Stdout, "%s: %s\n", presetName, description)
+		}
+		return agentcli.ExitSuccess
+	}
+
 	if name == "" {
-		fmt.Fprintln(os.Stderr, "usage: agentcli add command [--dir path] [--description text] [--preset name] <name>")
+		fmt.Fprintln(os.Stderr, "usage: agentcli add command [--dir path] [--description text] [--preset name] [--list-presets] <name>")
 		return agentcli.ExitUsage
 	}
 	if err := agentcli.ScaffoldAddCommand(rootDir, name, description, preset); err != nil {
@@ -187,9 +198,12 @@ func printUsage() {
 	fmt.Fprintln(os.Stderr, "agentcli scaffold CLI")
 	fmt.Fprintln(os.Stderr, "Usage:")
 	fmt.Fprintln(os.Stderr, "  agentcli new [--dir path] [--module module/path] <name>")
-	fmt.Fprintln(os.Stderr, "  agentcli add command [--dir path] [--description text] [--preset name] <name>")
+	fmt.Fprintln(os.Stderr, "  agentcli add command [--dir path] [--description text] [--preset name] [--list-presets] <name>")
 	fmt.Fprintln(os.Stderr, "  agentcli doctor [--dir path] [--json]")
 	fmt.Fprintln(os.Stderr, "")
 	fmt.Fprintln(os.Stderr, "Presets for add command:")
-	fmt.Fprintln(os.Stderr, "  file-sync, http-client, deploy-helper")
+	for _, presetName := range agentcli.CommandPresetNames() {
+		description, _ := agentcli.CommandPresetDescription(presetName)
+		fmt.Fprintf(os.Stderr, "  %s: %s\n", presetName, description)
+	}
 }
