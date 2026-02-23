@@ -12,7 +12,7 @@ brew install agentcli
 Or with Go:
 
 ```bash
-go install github.com/gh-xj/agentcli-go/cmd/agentcli@v0.2.0
+go install github.com/gh-xj/agentcli-go/cmd/agentcli@v0.2.1
 ```
 
 ## Install Verification

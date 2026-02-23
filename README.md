@@ -30,13 +30,13 @@ Compared with ad-hoc Bash/Python scripts, `agentcli-go` gives you:
 ### 1) Install with Go (Recommended)
 
 ```bash
-go install github.com/gh-xj/agentcli-go/cmd/agentcli@v0.2.0
+go install github.com/gh-xj/agentcli-go/cmd/agentcli@v0.2.1
 ```
 
 Add framework library dependency in your project:
 
 ```bash
-go get github.com/gh-xj/agentcli-go@v0.2.0
+go get github.com/gh-xj/agentcli-go@v0.2.1
 ```
 
 ### 2) Install with Homebrew
@@ -50,7 +50,7 @@ brew install agentcli
 
 Download from releases (macOS/Linux amd64+arm64):
 
-- https://github.com/gh-xj/agentcli-go/releases/tag/v0.2.0
+- https://github.com/gh-xj/agentcli-go/releases/tag/v0.2.1
 
 ### Development Version
 
@@ -107,7 +107,7 @@ task verify
 ```bash
 set -e
 
-go install github.com/gh-xj/agentcli-go/cmd/agentcli@v0.2.0
+go install github.com/gh-xj/agentcli-go/cmd/agentcli@v0.2.1
 
 mkdir -p /tmp/agentcli-demo && cd /tmp/agentcli-demo
 agentcli new --module example.com/demo demo

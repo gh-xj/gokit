@@ -26,7 +26,7 @@ What I want feedback on:
 
 Quick start:
 ```bash
-go install github.com/gh-xj/agentcli-go/cmd/agentcli@v0.2.0
+go install github.com/gh-xj/agentcli-go/cmd/agentcli@v0.2.1
 agentcli new --module example.com/mycli mycli
 agentcli add command --dir ./mycli --preset file-sync sync-data
 agentcli doctor --dir ./mycli --json
