@@ -26,6 +26,8 @@ func run(args []string) int {
 		return runDoctor(args[1:])
 	case "loop":
 		return runLoop(args[1:])
+	case "loop-server":
+		return runLoopServer(args[1:])
 	case "-h", "--help", "help":
 		printUsage()
 		return agentcli.ExitSuccess
@@ -202,7 +204,8 @@ func printUsage() {
 	fmt.Fprintln(os.Stderr, "  agentcli new [--dir path] [--module module/path] <name>")
 	fmt.Fprintln(os.Stderr, "  agentcli add command [--dir path] [--description text] [--preset name] [--list-presets] <name>")
 	fmt.Fprintln(os.Stderr, "  agentcli doctor [--dir path] [--json]")
-	fmt.Fprintln(os.Stderr, "  agentcli loop [run|judge|autofix|all] [--repo-root path] [--threshold score] [--max-iterations n]")
+	fmt.Fprintln(os.Stderr, "  agentcli loop [run|judge|autofix|all] [--repo-root path] [--threshold score] [--max-iterations n] [--api url]")
+	fmt.Fprintln(os.Stderr, "  agentcli loop-server [--addr host:port] [--repo-root path]")
 	fmt.Fprintln(os.Stderr, "")
 	fmt.Fprintln(os.Stderr, "Presets for add command:")
 	for _, presetName := range agentcli.CommandPresetNames() {

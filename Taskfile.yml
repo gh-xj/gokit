@@ -233,10 +233,20 @@ tasks:
     cmds:
       - go run ./cmd/agentcli loop run --repo-root . --threshold 9.0 --max-iterations 1
 
+  loop:serve:
+    desc: Start local loop API server
+    cmds:
+      - go run ./cmd/agentcli loop-server --addr 127.0.0.1:7878 --repo-root .
+
   loop:judge:
     desc: Run onboarding judge-only gate
     cmds:
       - go run ./cmd/agentcli loop judge --repo-root . --threshold 9.0 --max-iterations 1
+
+  loop:judge:api:
+    desc: Run onboarding judge via local loop API
+    cmds:
+      - go run ./cmd/agentcli loop judge --api http://127.0.0.1:7878 --repo-root . --threshold 9.0 --max-iterations 1
 
   loop:autofix:
     desc: Run onboarding loop with autofix and branch commit workflow
