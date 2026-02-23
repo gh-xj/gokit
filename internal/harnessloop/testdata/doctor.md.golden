@@ -1,0 +1,13 @@
+# Loop Doctor
+
+- Lean ready: `true`
+- Lab features ready: `false`
+- Review path: `.docs/onboarding-loop/review/latest.md`
+
+## Findings
+
+- none
+
+## Suggestions
+
+- Lean path ready. Use 'agentcli loop judge' for daily checks.

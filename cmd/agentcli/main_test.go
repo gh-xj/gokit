@@ -166,6 +166,22 @@ func TestRunLoopReview(t *testing.T) {
 	}
 }
 
+func TestRunLoopReviewJSON(t *testing.T) {
+	root := t.TempDir()
+	loopDir := filepath.Join(root, ".docs", "onboarding-loop")
+	if err := os.MkdirAll(loopDir, 0755); err != nil {
+		t.Fatalf("mkdir loop dir: %v", err)
+	}
+	summary := `{"schema_version":"v1","run_id":"r1","mode":"committee","finished_at":"2026-02-23T00:00:00Z","findings":[],"judge":{"score":9.5,"threshold":9.0,"pass":true},"iterations":1,"branch":"main"}`
+	if err := os.WriteFile(filepath.Join(loopDir, "latest-summary.json"), []byte(summary), 0644); err != nil {
+		t.Fatalf("write summary: %v", err)
+	}
+	exitCode := run([]string{"loop", "review", "--repo-root", root, "--json"})
+	if exitCode != agentcli.ExitSuccess {
+		t.Fatalf("unexpected exit code: got %d want %d", exitCode, agentcli.ExitSuccess)
+	}
+}
+
 func TestParseLoopFlags(t *testing.T) {
 	opts, err := parseLoopFlags([]string{
 		"--repo-root", ".",

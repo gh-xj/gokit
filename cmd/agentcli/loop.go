@@ -28,6 +28,16 @@ func runLoop(args []string) int {
 			fmt.Fprintln(os.Stderr, err.Error())
 			return agentcli.ExitUsage
 		}
+		if opts.JSON {
+			data, err := harnessloop.LoadReviewData(opts.RepoRoot)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "load review data: %v\n", err)
+				return agentcli.ExitFailure
+			}
+			out, _ := json.MarshalIndent(data, "", "  ")
+			fmt.Fprintln(os.Stdout, string(out))
+			return agentcli.ExitSuccess
+		}
 		reviewPath := filepath.Join(opts.RepoRoot, ".docs", "onboarding-loop", "review", "latest.md")
 		content, err := os.ReadFile(reviewPath)
 		if err != nil {
@@ -211,6 +221,7 @@ type loopFlags struct {
 	Branch        string
 	APIURL        string
 	Markdown      bool
+	JSON          bool
 }
 
 func parseLoopFlags(args []string) (loopFlags, error) {
@@ -258,6 +269,8 @@ func parseLoopFlags(args []string) (loopFlags, error) {
 			i++
 		case "--md":
 			opts.Markdown = true
+		case "--json":
+			opts.JSON = true
 		default:
 			return loopFlags{}, fmt.Errorf("unexpected argument: %s", args[i])
 		}

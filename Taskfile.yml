@@ -270,6 +270,11 @@ tasks:
     cmds:
       - go run ./cmd/agentcli loop review --repo-root .
 
+  loop:clean:
+    desc: Clean stale loop compare artifacts (keeps latest 20)
+    cmds:
+      - go run ./internal/tools/loopclean --repo-root . --keep-compare 20
+
   loop:judge:api:
     desc: Run onboarding judge via local loop API
     cmds:

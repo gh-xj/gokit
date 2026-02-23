@@ -32,6 +32,12 @@ Or print it directly:
 agentcli loop review --repo-root .
 ```
 
+JSON output for automation:
+
+```bash
+agentcli loop review --repo-root . --json
+```
+
 Primary machine-readable summary:
 
 - `.docs/onboarding-loop/latest-summary.json`

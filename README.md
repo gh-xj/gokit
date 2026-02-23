@@ -182,6 +182,12 @@ Lean health check:
 agentcli loop doctor --repo-root .
 ```
 
+Bot-friendly review data:
+
+```bash
+agentcli loop review --repo-root . --json
+```
+
 Primary reviewer artifact: `.docs/onboarding-loop/review/latest.md`.
 
 Compare two experiment runs:
@@ -213,6 +219,7 @@ Simple docs entry points:
 - https://gh-xj.github.io/agentcli-go/
 - [`skills/verification-loop/SKILL.md`](./skills/verification-loop/SKILL.md)
 - [`docs/loop/quickstart.md`](./docs/loop/quickstart.md)
+- [`docs/loop/architecture.md`](./docs/loop/architecture.md)
 - [`docs/site/index.md`](./docs/site/index.md)
 - [`docs/site/getting-started.md`](./docs/site/getting-started.md)
 - [`docs/site/ai-agent-playbook.md`](./docs/site/ai-agent-playbook.md)
