@@ -48,7 +48,6 @@ Command reference (must match CLI help):
 - Score threshold
 - Role commands (planner/fixer/judger) with deterministic context contract
 - Independent judger default (no planner/fixer reasoning context)
-- Benchmark floor checks (`task loop:benchmark` + `task loop:benchmark:check`)
 
 ## Resources
 

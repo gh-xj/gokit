@@ -29,7 +29,7 @@ It helps human + AI teams ship automation that stays contract-compliant over tim
 
 - deterministic scenario replay for onboarding and smoke validation
 - explicit score gates (`0..10`, threshold-based pass/fail)
-- role-based diagnostics when deep analysis is needed
+- role-based diagnostics when deeper analysis is needed
 - drift prevention: schema checks + docs/help consistency checks
 
 ## Why This Beats Script-Based Workflows
