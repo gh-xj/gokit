@@ -37,6 +37,13 @@ Shared Go helpers and framework modules for building personal CLI scripts and to
 - You rely on AI agents and want fewer run/retry loops from inconsistent setup.
 - You value small, reviewable runtime APIs over large generator-heavy frameworks.
 
+## Common use cases
+
+- Internal ops scripts (`cron`, migration helpers, maintenance assistants).
+- Data/IO helpers (`sync`, fetch, transform, report).
+- Multi-step agent workflows that need deterministic command/task orchestration.
+- Reusable CLI kits for internal teams needing the same scaffolding and quality gates.
+
 ## How this project fits
 
 `agentcli-go` is the **foundation layer** for CLI scripts in this repo:
@@ -96,6 +103,15 @@ go run . --help
 ```
 
 If this works, your team gets a scaffolded CLI with harness-friendly structure without manual setup.
+
+## FAQ (1-minute)
+
+- `agentcli loop` command fails in docs?
+  - Check `agents.md` and `skills/verification-loop/SKILL.md` for current command signatures.
+- My generated project is missing expected files?
+  - Re-run `agentcli new` with a clean directory name and check template version compatibility.
+- What should I do before opening PR?
+  - Run `task verify` and include output of key checks in your PR notes.
 
 ## Contributing
 

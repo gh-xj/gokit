@@ -17,8 +17,14 @@ Before opening a PR, run at least:
 
 ```bash
 go test ./...
-go test ./... -run TestNonExistent  # optional smoke pass pattern for quick local use
+task verify
+```
+
+Optional deep checks:
+
+```bash
 agentcli loop doctor --repo-root .
+agentcli loop quality --repo-root . --threshold 9.0 --max-iterations 1
 ```
 
 ## PR expectations
