@@ -7,6 +7,11 @@ vars:
   TAP_PUSH: "0"
 
 tasks:
+  hygiene:
+    desc: Detect junk files, obvious secret leaks, and history artifacts
+    cmds:
+      - ./scripts/hygiene.sh
+
   fmt:
     desc: Format Go files
     cmds:
@@ -71,7 +76,7 @@ tasks:
 
   ci:
     desc: Canonical CI contract command
-    deps: [lint, test, build, smoke, schema:check, schema:negative, docs:check]
+    deps: [hygiene, lint, test, build, smoke, schema:check, schema:negative, docs:check]
     cmds:
       - echo "ci checks passed"
 
@@ -310,3 +315,11 @@ tasks:
     desc: Project skill trigger (local evolve loop + push branch + open/update PR)
     cmds:
       - BASE_BRANCH={{.BASE_BRANCH | default "main"}} LOOP_BRANCH={{.LOOP_BRANCH | default "autofix/onboarding-loop"}} THRESHOLD={{.THRESHOLD | default "9.0"}} MAX_ITERATIONS={{.MAX_ITERATIONS | default "5"}} scripts/skill-loop/run.sh
+
+  hooks:install:
+    desc: Install local git pre-commit hook for hygiene checks
+    cmds:
+      - mkdir -p .git/hooks
+      - cp .githooks/pre-commit .git/hooks/pre-commit
+      - chmod +x .git/hooks/pre-commit
+      - echo "installed .git/hooks/pre-commit"

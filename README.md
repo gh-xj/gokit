@@ -245,6 +245,11 @@ Before opening a PR:
 2. Update schema fixtures when output contracts change.
 3. Run `task ci`.
 
+Recommended local guardrails:
+
+- `task hygiene` to catch junk files, leaked keys/tokens, and history artifacts
+- `task hooks:install` to enable pre-commit hygiene checks
+
 ## Maintainer Release Flow
 
 ```bash
