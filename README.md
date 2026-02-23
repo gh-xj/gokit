@@ -46,6 +46,12 @@ brew tap gh-xj/tap
 brew install agentcli
 ```
 
+### 3) Install Prebuilt Binary
+
+Download from releases (macOS/Linux amd64+arm64):
+
+- https://github.com/gh-xj/agentcli-go/releases/tag/v0.2.0
+
 ### Development Version
 
 ```bash
@@ -164,6 +170,7 @@ Examples index: [`examples/README.md`](./examples/README.md)
 
 Simple docs entry points:
 
+- https://gh-xj.github.io/agentcli-go/
 - [`docs/site/index.md`](./docs/site/index.md)
 - [`docs/site/getting-started.md`](./docs/site/getting-started.md)
 - [`docs/site/ai-agent-playbook.md`](./docs/site/ai-agent-playbook.md)

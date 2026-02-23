@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AI Agent Playbook - agentcli-go</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif; max-width: 860px; margin: 40px auto; padding: 0 16px; line-height: 1.6; }
+    pre { background: #f7f7f7; padding: 12px; border-radius: 8px; overflow: auto; }
+  </style>
+</head>
+<body>
+  <h1>AI Agent Playbook</h1>
+  <ol>
+    <li>Create project: <code>agentcli new --module example.com/mycli mycli</code></li>
+    <li>Add command: <code>agentcli add command --dir ./mycli sync-data</code></li>
+    <li>Validate contract: <code>agentcli doctor --dir ./mycli --json</code></li>
+    <li>Run gate: <code>cd mycli && task verify</code></li>
+  </ol>
+  <h2>Prompt Starter</h2>
+  <pre><code>You are helping me onboard to agentcli-go.
+Goal: create a deterministic Go CLI and keep it contract-compliant.
+
+1) agentcli new --module example.com/mycli mycli
+2) agentcli add command --dir ./mycli sync-data
+3) agentcli doctor --dir ./mycli --json
+4) cd mycli && task verify
+
+If anything fails, fix and re-run verification.</code></pre>
+</body>
+</html>
