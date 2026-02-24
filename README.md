@@ -278,7 +278,7 @@ agentcli doctor --json        # verify compliance
 task verify                   # run full local gate
 ```
 
-For monorepos, generate without nested `go.mod`:
+Recommended default for monorepos: generate without nested `go.mod`:
 
 ```bash
 # run inside an existing Go module
@@ -373,3 +373,9 @@ Loop API contract:
 
 - `loop-server` endpoint `POST /v1/loop/run` returns the same harness summary envelope used by CLI output (`schema_version`, `command`, `status`, `checks`, `failures`, `artifacts`, `data`).
 - Client helper `internal/loopapi.RunSummary` returns the summary envelope directly.
+
+Core-only compile fallback:
+
+- If optional loop/harness packages drift and you only need scaffold/doctor flows, build with `agentcli_core` tag:
+  - `go build -tags agentcli_core ./cmd/agentcli`
+- In `agentcli_core` builds, `loop` and `loop-server` commands are intentionally disabled.

@@ -87,6 +87,11 @@ tasks:
     cmds:
       - go run ./cmd/agentcli loop regression --repo-root .
 
+  core:build:
+    desc: Ensure core-only agentcli build compiles without optional loop/harness features
+    cmds:
+      - go build -tags agentcli_core ./cmd/agentcli
+
   ci:
     desc: Canonical CI contract command
     deps: [preflight, lint, test, build, smoke, schema:check, schema:negative, docs:check, regression:behavior]
@@ -98,6 +103,25 @@ tasks:
     deps: [ci]
     cmds:
       - echo "verify checks passed"
+
+  release:gate:
+    desc: Required checks before tag publish
+    deps: [ci, core:build]
+    cmds:
+      - go run ./cmd/agentcli --help >/dev/null 2>&1
+      - echo "release gate checks passed"
+
+  release:publish:
+    desc: Publish tag and GitHub release (requires TAG and NOTES)
+    deps: [release:gate]
+    cmds:
+      - test -n "{{.TAG}}" || (echo "TAG is required, e.g. TAG=v0.2.4" && exit 1)
+      - test -n "{{.NOTES}}" || (echo "NOTES is required, e.g. NOTES=docs/releases/v0.2.4.md" && exit 1)
+      - test -f "{{.NOTES}}"
+      - sh -c '! git rev-parse -q --verify refs/tags/{{.TAG}} >/dev/null'
+      - git tag -a {{.TAG}} -m "{{.TAG}}"
+      - git push origin {{.TAG}}
+      - gh release create {{.TAG}} --title "{{.TAG}}" --notes-file {{.NOTES}}
 
   hooks:install:
     desc: Install local git pre-commit hook for hygiene checks

@@ -1,3 +1,6 @@
+//go:build !agentcli_core
+// +build !agentcli_core
+
 package main
 
 import (

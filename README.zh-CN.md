@@ -204,6 +204,14 @@ agentcli doctor --json        # 验证合规
 task verify                   # 运行完整本地门禁
 ```
 
+Monorepo 默认推荐：使用 `--in-existing-module`，避免嵌套 `go.mod`：
+
+```bash
+agentcli new --dir ./tools --in-existing-module replay-cli
+cd tools/replay-cli
+task verify
+```
+
 项目结构示例：
 
 ```
@@ -221,6 +229,12 @@ my-tool/
 ```
 
 可用预设：`file-sync`、`http-client`、`deploy-helper`、`task-replay-emit-wrapper`
+
+可选能力降级编译（当 loop/harness 相关包临时漂移时）：
+
+- 仅保留 core scaffold/doctor 能力编译：
+  - `go build -tags agentcli_core ./cmd/agentcli`
+- `agentcli_core` 构建下，`loop` 与 `loop-server` 命令会被禁用。
 
 ## 示例
 
