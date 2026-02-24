@@ -3,6 +3,8 @@
 [![License](https://img.shields.io/github/license/gh-xj/agentcli-go)](./LICENSE)
 [![Go Version](https://img.shields.io/github/go-mod/go-version/gh-xj/agentcli-go)](./go.mod)
 
+**Languages**: [English](./README.md) | [中文](./README.zh-CN.md)
+
 <p align="center">
   <img src="./assets/logo/agentcli-go-logo.svg" alt="AgentCLI - GO logo" width="760" />
 </p>
@@ -186,6 +188,7 @@ Or download a prebuilt binary (macOS/Linux amd64+arm64):
 
 For guidance on using this library effectively in Codex/Claude workflows, see [`skills/agentcli-go/SKILL.md`](./skills/agentcli-go/SKILL.md).
 For agent-specific onboarding and harness entrypoints, see [`agents.md`](./agents.md).
+For a project-level quick-start skill example, see [`skill.md`](./skill.md).
 
 ## Published on ClawHub
 
@@ -323,4 +326,23 @@ If this project is used as an agent skill, start with [`agents.md`](./agents.md)
 ## Optional: Advanced verification profiles
 
 `agentcli loop` supports configurable verification profiles (for automation workflows).
-See the project-specific guidance in `agents.md`.
+
+Canonical shape:
+
+- `agentcli loop [global flags] <action> [action flags]`
+- Global flags must appear before `<action>`.
+- Global flags: `--format text|json|ndjson`, `--summary <path>`, `--no-color`, `--dry-run`, `--explain`
+
+Discovery:
+
+- `agentcli loop --format json capabilities`
+
+Behavior-only regression gate:
+
+- `agentcli loop regression --repo-root .`
+- baseline update: `agentcli loop regression --repo-root . --write-baseline`
+
+Loop API contract:
+
+- `loop-server` endpoint `POST /v1/loop/run` returns the same harness summary envelope used by CLI output (`schema_version`, `command`, `status`, `checks`, `failures`, `artifacts`, `data`).
+- Client helper `internal/loopapi.RunSummary` returns the summary envelope directly.

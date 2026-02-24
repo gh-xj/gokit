@@ -10,6 +10,8 @@ import (
 	"strings"
 
 	harnessloop "github.com/gh-xj/agentcli-go/internal/harnessloop"
+	harness "github.com/gh-xj/agentcli-go/tools/harness"
+	loopcommands "github.com/gh-xj/agentcli-go/tools/harness/commands"
 )
 
 type RunRequest struct {
@@ -81,14 +83,20 @@ func loopRunHandler(defaultRepoRoot string) http.HandlerFunc {
 			http.Error(w, "unknown action", http.StatusBadRequest)
 			return
 		}
-		result, err := harnessloop.RunLoop(cfg)
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			_ = json.NewEncoder(w).Encode(map[string]string{"error": err.Error()})
-			return
-		}
+
+		summary, _ := harness.Run(harness.CommandInput{
+			Name: "loop " + req.Action,
+			Execute: func(ctx harness.Context) (harness.CommandOutcome, error) {
+				result, err := harnessloop.RunLoop(cfg)
+				if err != nil {
+					return harness.CommandOutcome{}, harness.WrapFailure(harness.CodeExecution, "loop run failed", "", false, err)
+				}
+				return loopcommands.OutcomeFromRunResult(result), nil
+			},
+		})
+
 		w.Header().Set("Content-Type", "application/json")
-		if err := json.NewEncoder(w).Encode(result); err != nil {
+		if err := json.NewEncoder(w).Encode(summary); err != nil {
 			http.Error(w, "encode response failed", http.StatusInternalServerError)
 			return
 		}
