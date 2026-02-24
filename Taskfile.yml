@@ -82,9 +82,14 @@ tasks:
     cmds:
       - go run ./internal/tools/doccheck --repo-root .
 
+  regression:behavior:
+    desc: Run behavior-only regression gate against committed baseline
+    cmds:
+      - go run ./cmd/agentcli loop regression --repo-root .
+
   ci:
     desc: Canonical CI contract command
-    deps: [preflight, lint, test, build, smoke, schema:check, schema:negative, docs:check]
+    deps: [preflight, lint, test, build, smoke, schema:check, schema:negative, docs:check, regression:behavior]
     cmds:
       - echo "ci checks passed"
 

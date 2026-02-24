@@ -1,0 +1,45 @@
+{
+  "schema_version": "v1",
+  "kind": "loop_behavior",
+  "profile": "quality",
+  "generated_at": "2026-02-24T10:33:10.808925Z",
+  "snapshot": {
+    "mode": "committee",
+    "iterations": 1,
+    "scenario": {
+      "name": "default-onboarding",
+      "ok": true,
+      "steps": [
+        {
+          "name": "scaffold",
+          "exit_code": 0
+        },
+        {
+          "name": "add-command",
+          "exit_code": 0
+        },
+        {
+          "name": "doctor",
+          "exit_code": 0
+        },
+        {
+          "name": "verify",
+          "exit_code": 0
+        }
+      ]
+    },
+    "findings": [],
+    "judge": {
+      "threshold": 9,
+      "score": 10,
+      "pass": true,
+      "hard_failures": 0,
+      "counter_intuitive_findings": 0
+    },
+    "committee": {
+      "planner_strategy": "builtin",
+      "fixer_strategy": "builtin",
+      "judger_strategy": "external"
+    }
+  }
+}

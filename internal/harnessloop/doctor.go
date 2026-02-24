@@ -28,7 +28,7 @@ func LoopDoctor(repoRoot string) DoctorReport {
 		suggestions = append(suggestions, "Run 'agentcli loop lab run --verbose-artifacts --max-iterations 1' to enable replay/forensics.")
 	}
 	if len(suggestions) == 0 {
-		suggestions = append(suggestions, "Lean path ready. Use 'agentcli loop judge' for daily checks.")
+		suggestions = append(suggestions, "Lean path ready. Use 'agentcli loop lean' for daily checks and 'agentcli loop quality' for skill package checks.")
 	}
 	return DoctorReport{
 		SchemaVersion:    "v1",

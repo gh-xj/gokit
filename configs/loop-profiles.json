@@ -1,0 +1,17 @@
+{
+  "quality": {
+    "mode": "committee",
+    "role_config": "configs/skill-quality.roles.json",
+    "max_iterations": 1,
+    "threshold": 9.0,
+    "budget": 1,
+    "verbose_artifacts": true
+  },
+  "lean": {
+    "mode": "committee",
+    "max_iterations": 1,
+    "threshold": 7.5,
+    "budget": 1,
+    "verbose_artifacts": false
+  }
+}

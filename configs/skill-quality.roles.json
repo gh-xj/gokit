@@ -1,0 +1,12 @@
+{
+  "planner": {
+    "strategy": "builtin"
+  },
+  "fixer": {
+    "strategy": "builtin"
+  },
+  "judger": {
+    "strategy": "external",
+    "command": "go run ./internal/tools/skillquality --context \"$HARNESS_CONTEXT_FILE\" --repo-root \"$HARNESS_REPO_ROOT\""
+  }
+}
