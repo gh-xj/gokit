@@ -69,7 +69,7 @@ git worktree add -b "${LOOP_BRANCH}" "${WORKTREE_DIR}" "${SOURCE_REF}" >/dev/nul
 
 cd "${WORKTREE_DIR}"
 log "running local evolve loop"
-go run ./cmd/agentcli loop all --repo-root . --threshold "${THRESHOLD}" --max-iterations "${MAX_ITERATIONS}" --branch "${LOOP_BRANCH}"
+go run ./cmd/agentcli loop autofix --repo-root . --threshold "${THRESHOLD}" --max-iterations "${MAX_ITERATIONS}" --branch "${LOOP_BRANCH}"
 
 SUMMARY_FILE="${WORKTREE_DIR}/.docs/onboarding-loop/latest-summary.json"
 if [[ ! -f "${SUMMARY_FILE}" ]]; then

@@ -1,0 +1,3 @@
+display_name: agentcli-go
+short_description: Build deterministic AI-friendly Go CLIs with scaffolded structure and contract-based checks.
+default_prompt: Use this skill to onboard to agentcli-go, scaffold a CLI, and run verification workflows.

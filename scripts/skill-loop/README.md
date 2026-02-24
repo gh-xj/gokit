@@ -5,7 +5,7 @@ Single-entry project skill trigger for local self-evolution with human-in-the-lo
 ## What it does
 
 1. Creates isolated worktree from `origin/main`.
-2. Runs local loop (`agentcli loop all`) until judge threshold or max iterations.
+2. Runs local loop (`agentcli loop autofix`) until judge threshold or max iterations.
 3. Pushes dedicated branch.
 4. Opens/updates PR for human review.
 
