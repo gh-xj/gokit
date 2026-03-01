@@ -81,3 +81,41 @@ func TestResolveRepoParsesSSHRemoteWithPort(t *testing.T) {
 		t.Fatalf("expected git_remote reason, got %q", res.Reason)
 	}
 }
+
+func TestResolveRepoRejectsNonGitHubHTTPSHost(t *testing.T) {
+	r := Router{MinConfidence: 0.75}
+
+	res := r.Resolve(RouteInput{
+		GitRemote: "https://mirror.example.com/github.com/gh-xj/agentcli-go.git",
+		CWD:       "/tmp/worktree/fallback-repo",
+	})
+
+	if res.Reason == "git_remote" {
+		t.Fatalf("expected non-github host to avoid git_remote signal: %+v", res)
+	}
+	if res.Repo != "fallback-repo" {
+		t.Fatalf("expected cwd fallback repo, got %q", res.Repo)
+	}
+	if !res.Pending {
+		t.Fatalf("expected weak fallback route to be pending")
+	}
+}
+
+func TestResolveRepoRejectsNonGitHubSSHHost(t *testing.T) {
+	r := Router{MinConfidence: 0.75}
+
+	res := r.Resolve(RouteInput{
+		GitRemote: "ssh://git@mirror.example.com:2222/github.com/gh-xj/agentcli-go.git",
+		CWD:       "/tmp/worktree/fallback-repo",
+	})
+
+	if res.Reason == "git_remote" {
+		t.Fatalf("expected non-github host to avoid git_remote signal: %+v", res)
+	}
+	if res.Repo != "fallback-repo" {
+		t.Fatalf("expected cwd fallback repo, got %q", res.Repo)
+	}
+	if !res.Pending {
+		t.Fatalf("expected weak fallback route to be pending")
+	}
+}

@@ -19,7 +19,8 @@ type RouteResult struct {
 	Pending    bool
 }
 
-var githubRemotePattern = regexp.MustCompile(`(?i)github\.com[:/](?:\d+/)?([^/\s]+)/([^/\s]+?)(?:\.git)?/?$`)
+var githubURLRemotePattern = regexp.MustCompile(`(?i)^(?:https?|ssh|git)://(?:[^@/\s]+@)?github\.com(?::\d+)?/([^/\s]+)/([^/\s]+?)(?:\.git)?/?$`)
+var githubSCPRemotePattern = regexp.MustCompile(`(?i)^(?:[^@/\s]+@)?github\.com:([^/\s]+)/([^/\s]+?)(?:\.git)?/?$`)
 
 func (r Router) Resolve(in RouteInput) RouteResult {
 	override := strings.TrimSpace(in.OverrideRepo)
@@ -54,18 +55,21 @@ func inferRepo(in RouteInput) (string, float64, string) {
 
 func inferFromGitRemote(remote string) (string, bool) {
 	remote = strings.TrimSpace(remote)
-	m := githubRemotePattern.FindStringSubmatch(remote)
-	if len(m) != 3 {
-		return "", false
-	}
+	for _, pattern := range []*regexp.Regexp{githubURLRemotePattern, githubSCPRemotePattern} {
+		m := pattern.FindStringSubmatch(remote)
+		if len(m) != 3 {
+			continue
+		}
 
-	owner := strings.TrimSpace(m[1])
-	repo := strings.TrimSpace(m[2])
-	if owner == "" || repo == "" {
-		return "", false
-	}
+		owner := strings.TrimSpace(m[1])
+		repo := strings.TrimSpace(m[2])
+		if owner == "" || repo == "" {
+			continue
+		}
 
-	return owner + "/" + repo, true
+		return owner + "/" + repo, true
+	}
+	return "", false
 }
 
 func inferFromCWD(cwd string) (string, bool) {
