@@ -64,11 +64,29 @@ func (l Ledger) FindOpenByFingerprint(fp string) (LedgerRecord, bool, error) {
 	needle := strings.TrimSpace(fp)
 	for i := len(records) - 1; i >= 0; i-- {
 		rec := records[i]
-		if strings.TrimSpace(rec.Fingerprint) == needle {
-			if strings.EqualFold(strings.TrimSpace(rec.Status), LedgerStatusOpen) {
+		if strings.TrimSpace(rec.Fingerprint) != needle {
+			continue
+		}
+
+		status := strings.ToLower(strings.TrimSpace(rec.Status))
+		issueURL := strings.TrimSpace(rec.IssueURL)
+
+		switch status {
+		case "closed":
+			return LedgerRecord{}, false, nil
+		case LedgerStatusOpen:
+			if issueURL == "" {
+				return LedgerRecord{}, false, fmt.Errorf("ledger record fingerprint %q has status %q but empty issue_url", needle, LedgerStatusOpen)
+			}
+			rec.IssueURL = issueURL
+			return rec, true, nil
+		case string(ActionQueueRetry):
+			// Retry markers may carry the known issue URL from a failed comment path.
+			// If URL is missing, keep scanning older entries instead of masking dedupe.
+			if issueURL != "" {
+				rec.IssueURL = issueURL
 				return rec, true, nil
 			}
-			return LedgerRecord{}, false, nil
 		}
 	}
 
