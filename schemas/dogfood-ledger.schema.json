@@ -1,0 +1,10 @@
+{
+  "schema_version": "dogfood-ledger.v1",
+  "required_keys": [
+    "schema_version",
+    "event_id",
+    "fingerprint",
+    "status",
+    "created_at"
+  ]
+}

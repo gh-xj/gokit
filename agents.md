@@ -24,6 +24,24 @@ This file is the quick entrypoint for coding agents working in this repository.
   - `skills/loop-governance/case-study.md`
 - Keep docs/skill docs aligned with command help to satisfy `docs:check`.
 
+## Dogfood Feedback Loop Skill
+
+- Skill doc: `skills/dogfood-feedback-loop/SKILL.md`
+- Examples: `skills/dogfood-feedback-loop/examples/*.md`
+- Event contract: `schemas/dogfood-event.schema.json`
+- Ledger contract: `schemas/dogfood-ledger.schema.json`
+
+Use this flow for internal failure feedback routing:
+
+1. Confirm GitHub auth (`gh auth status`; run `gh auth login` if needed).
+2. Dry-run with event payload:
+   - `task dogfood:dry-run EVENT=.docs/dogfood/event.json`
+3. Publish after reviewing decision:
+   - `task dogfood:publish EVENT=.docs/dogfood/event.json`
+4. Re-run schema contracts when changing payload shape:
+   - `task schema:check`
+   - `task schema:negative`
+
 ## Install & Install Verification
 
 - If `agentcli` is not installed in the environment:

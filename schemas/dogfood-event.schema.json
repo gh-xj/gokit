@@ -1,0 +1,11 @@
+{
+  "schema_version": "dogfood-event.v1",
+  "required_keys": [
+    "schema_version",
+    "event_id",
+    "event_type",
+    "signal_source",
+    "timestamp",
+    "fingerprint"
+  ]
+}
