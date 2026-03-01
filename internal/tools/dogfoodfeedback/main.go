@@ -18,6 +18,11 @@ import (
 
 const defaultLedgerPath = ".docs/dogfood/ledger.json"
 
+const (
+	idempotencyLockTimeout = 5 * time.Second
+	idempotencyLockPoll    = 10 * time.Millisecond
+)
+
 type ledgerStore interface {
 	FindOpenByFingerprint(fp string) (dogfood.LedgerRecord, bool, error)
 	Append(rec dogfood.LedgerRecord) error
@@ -253,19 +258,32 @@ type fileIdempotencyStore struct {
 }
 
 func (s fileIdempotencyStore) Get(fingerprint string) (string, bool, error) {
-	values, err := s.readAll()
-	if err != nil {
+	var (
+		url string
+		ok  bool
+	)
+
+	if err := s.withExclusiveLock(func() error {
+		values, err := s.readAllUnlocked()
+		if err != nil {
+			return err
+		}
+
+		url, ok = values[strings.TrimSpace(fingerprint)]
+		if !ok {
+			return nil
+		}
+		url = strings.TrimSpace(url)
+		if url == "" {
+			ok = false
+			return nil
+		}
+		return nil
+	}); err != nil {
 		return "", false, err
 	}
-	url, ok := values[strings.TrimSpace(fingerprint)]
-	if !ok {
-		return "", false, nil
-	}
-	url = strings.TrimSpace(url)
-	if url == "" {
-		return "", false, nil
-	}
-	return url, true, nil
+
+	return url, ok, nil
 }
 
 func (s fileIdempotencyStore) Put(fingerprint, issueURL string) error {
@@ -281,15 +299,17 @@ func (s fileIdempotencyStore) Put(fingerprint, issueURL string) error {
 		return errors.New("issue_url is required")
 	}
 
-	values, err := s.readAll()
-	if err != nil {
-		return err
-	}
-	values[fingerprint] = issueURL
-	return s.writeAll(values)
+	return s.withExclusiveLock(func() error {
+		values, err := s.readAllUnlocked()
+		if err != nil {
+			return err
+		}
+		values[fingerprint] = issueURL
+		return s.writeAllUnlocked(values)
+	})
 }
 
-func (s fileIdempotencyStore) readAll() (map[string]string, error) {
+func (s fileIdempotencyStore) readAllUnlocked() (map[string]string, error) {
 	if strings.TrimSpace(s.Path) == "" {
 		return nil, errors.New("idempotency marker path is empty")
 	}
@@ -315,7 +335,7 @@ func (s fileIdempotencyStore) readAll() (map[string]string, error) {
 	return values, nil
 }
 
-func (s fileIdempotencyStore) writeAll(values map[string]string) error {
+func (s fileIdempotencyStore) writeAllUnlocked(values map[string]string) error {
 	dir := filepath.Dir(s.Path)
 	if err := os.MkdirAll(dir, 0o755); err != nil {
 		return fmt.Errorf("create idempotency marker dir %q: %w", dir, err)
@@ -348,6 +368,46 @@ func (s fileIdempotencyStore) writeAll(values map[string]string) error {
 		return cleanup(fmt.Errorf("rename temp idempotency marker file: %w", err))
 	}
 	return nil
+}
+
+func (s fileIdempotencyStore) withExclusiveLock(fn func() error) error {
+	unlock, err := s.acquireLock()
+	if err != nil {
+		return err
+	}
+	defer unlock()
+	return fn()
+}
+
+func (s fileIdempotencyStore) acquireLock() (func(), error) {
+	if strings.TrimSpace(s.Path) == "" {
+		return nil, errors.New("idempotency marker path is empty")
+	}
+
+	dir := filepath.Dir(s.Path)
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		return nil, fmt.Errorf("create idempotency marker dir %q: %w", dir, err)
+	}
+
+	lockPath := s.Path + ".lock"
+	deadline := time.Now().Add(idempotencyLockTimeout)
+	for {
+		lock, err := os.OpenFile(lockPath, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0o600)
+		if err == nil {
+			_ = lock.Close()
+			return func() {
+				_ = os.Remove(lockPath)
+			}, nil
+		}
+
+		if !errors.Is(err, os.ErrExist) {
+			return nil, fmt.Errorf("create idempotency marker lock %q: %w", lockPath, err)
+		}
+		if time.Now().After(deadline) {
+			return nil, fmt.Errorf("acquire idempotency marker lock %q: timeout after %s", lockPath, idempotencyLockTimeout)
+		}
+		time.Sleep(idempotencyLockPoll)
+	}
 }
 
 func markerPathForLedger(ledgerPath string) string {

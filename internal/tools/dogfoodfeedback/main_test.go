@@ -4,8 +4,10 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
+	"sync"
 	"testing"
 	"time"
 
@@ -124,6 +126,52 @@ func TestRunUsesIdempotencyMarkerWhenLedgerAppendFails(t *testing.T) {
 	}
 	if publisher.calls[1].ExistingIssueURL != "https://github.com/gh-xj/agentcli-go/issues/222" {
 		t.Fatalf("expected second call to comment existing issue from marker, got %q", publisher.calls[1].ExistingIssueURL)
+	}
+}
+
+func TestFileIdempotencyStoreConcurrentPutDoesNotLoseUpdates(t *testing.T) {
+	store := fileIdempotencyStore{Path: filepath.Join(t.TempDir(), "marker.json")}
+
+	const writers = 64
+	start := make(chan struct{})
+	errs := make(chan error, writers)
+	var wg sync.WaitGroup
+
+	for i := range writers {
+		wg.Add(1)
+		go func(i int) {
+			defer wg.Done()
+			<-start
+			errs <- store.Put(
+				fmt.Sprintf("fp-%03d", i),
+				fmt.Sprintf("https://github.com/gh-xj/agentcli-go/issues/%d", 1000+i),
+			)
+		}(i)
+	}
+
+	close(start)
+	wg.Wait()
+	close(errs)
+
+	for err := range errs {
+		if err != nil {
+			t.Fatalf("put returned error: %v", err)
+		}
+	}
+
+	for i := range writers {
+		key := fmt.Sprintf("fp-%03d", i)
+		wantURL := fmt.Sprintf("https://github.com/gh-xj/agentcli-go/issues/%d", 1000+i)
+		gotURL, ok, err := store.Get(key)
+		if err != nil {
+			t.Fatalf("get %q returned error: %v", key, err)
+		}
+		if !ok {
+			t.Fatalf("missing idempotency marker for %q", key)
+		}
+		if gotURL != wantURL {
+			t.Fatalf("unexpected marker value for %q: got %q want %q", key, gotURL, wantURL)
+		}
 	}
 }
 
