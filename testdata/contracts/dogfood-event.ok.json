@@ -3,6 +3,5 @@
   "event_id": "evt-2026-03-01-001",
   "event_type": "runtime_error",
   "signal_source": "local",
-  "timestamp": "2026-03-01T10:00:00Z",
-  "fingerprint": "runtime_error|panic-boom"
+  "timestamp": "2026-03-01T10:00:00Z"
 }

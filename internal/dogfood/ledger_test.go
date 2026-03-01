@@ -1,7 +1,9 @@
 package dogfood
 
 import (
+	"encoding/json"
 	"fmt"
+	"os"
 	"path/filepath"
 	"sync"
 	"testing"
@@ -205,5 +207,87 @@ func TestLedgerFindOpenByFingerprintRejectsOpenWithoutIssueURL(t *testing.T) {
 	}
 	if ok {
 		t.Fatalf("expected no dedupe candidate when open issue_url is malformed")
+	}
+}
+
+func TestLedgerPersistsJSONArrayOfRecordsWithRequiredKeys(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "dogfood-ledger.json")
+	l := NewLedger(path)
+
+	createdAt := time.Date(2026, 3, 1, 2, 0, 0, 0, time.UTC)
+	if err := l.Append(LedgerRecord{
+		EventID:     "evt-shape",
+		Fingerprint: "fp-shape",
+		IssueURL:    "https://github.com/o/r/issues/99",
+		Status:      LedgerStatusOpen,
+		CreatedAt:   createdAt,
+	}); err != nil {
+		t.Fatal(err)
+	}
+
+	raw, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatalf("read persisted ledger: %v", err)
+	}
+
+	var payload any
+	if err := json.Unmarshal(raw, &payload); err != nil {
+		t.Fatalf("decode persisted ledger: %v", err)
+	}
+
+	records, ok := payload.([]any)
+	if !ok {
+		t.Fatalf("expected persisted ledger root to be json array, got %T", payload)
+	}
+	if len(records) != 1 {
+		t.Fatalf("expected 1 persisted record, got %d", len(records))
+	}
+
+	record, ok := records[0].(map[string]any)
+	if !ok {
+		t.Fatalf("expected persisted record to be object, got %T", records[0])
+	}
+
+	for _, key := range []string{"schema_version", "event_id", "fingerprint", "status", "created_at"} {
+		if _, ok := record[key]; !ok {
+			t.Fatalf("expected persisted record key %q in %+v", key, record)
+		}
+	}
+
+	if got, _ := record["schema_version"].(string); got != LedgerSchemaVersionV1 {
+		t.Fatalf("expected schema_version %q, got %q", LedgerSchemaVersionV1, got)
+	}
+	if got, _ := record["status"].(string); got != LedgerStatusOpen {
+		t.Fatalf("expected status %q, got %q", LedgerStatusOpen, got)
+	}
+}
+
+func TestLedgerOmitsOptionalIssueURLWhenEmpty(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "dogfood-ledger.json")
+	l := NewLedger(path)
+
+	if err := l.Append(LedgerRecord{
+		EventID:     "evt-pending",
+		Fingerprint: "fp-pending",
+		Status:      string(ActionPendingReview),
+		CreatedAt:   time.Date(2026, 3, 1, 2, 30, 0, 0, time.UTC),
+	}); err != nil {
+		t.Fatal(err)
+	}
+
+	raw, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatalf("read persisted ledger: %v", err)
+	}
+
+	var records []map[string]any
+	if err := json.Unmarshal(raw, &records); err != nil {
+		t.Fatalf("decode persisted ledger: %v", err)
+	}
+	if len(records) != 1 {
+		t.Fatalf("expected 1 persisted record, got %d", len(records))
+	}
+	if _, ok := records[0]["issue_url"]; ok {
+		t.Fatalf("did not expect issue_url key when empty, got %+v", records[0])
 	}
 }

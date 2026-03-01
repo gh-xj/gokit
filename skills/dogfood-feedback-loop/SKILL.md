@@ -26,6 +26,7 @@ version: 1.0
    - `gh auth status`
    - If needed: `gh auth login`
 2. Prepare an event JSON file (schema: `schemas/dogfood-event.schema.json`).
+   - Input does not include `fingerprint`; runtime computes fingerprint from event content.
 3. Dry-run the decision:
    - `task dogfood:dry-run EVENT=.docs/dogfood/event.json`
 4. Publish feedback:

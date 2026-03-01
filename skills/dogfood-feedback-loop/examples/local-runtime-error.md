@@ -17,6 +17,8 @@
 }
 ```
 
+Fingerprint is intentionally omitted from input; the tool derives it at runtime.
+
 ## Commands
 
 ```bash
