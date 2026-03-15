@@ -1,8 +1,8 @@
 ---
 name: agentcli-go
 description: "agentcli-go framework reference for building Go CLI tools. Use when working on agentcli-go itself, scaffolding new CLI projects, adding commands, integrating the library, or debugging framework behavior. Triggers on: agentcli-go, scaffold new CLI, add command, cobrax, configx, AppContext, RunLifecycle, agentcli."
-version: "1.0"
-last_updated: 2026-02-23
+version: "2.0"
+last_updated: 2026-03-15
 ---
 
 # agentcli-go
@@ -14,18 +14,51 @@ Shared Go CLI helpers and framework modules.
 
 ---
 
-## API Surface
+## Architecture: DAG Layers
 
+```
+cmd/ (handler) → service → operator → dal
+                    ↓          ↓        ↓
+               root (model: AppContext, Hook, CLIError)
+```
+
+### Root Package (Model Layer)
 | File | Exported Symbols |
 |------|-----------------|
-| `log.go` | `InitLogger()` — zerolog setup, respects `-v`/`--verbose` |
-| `args.go` | `ParseArgs(args)`, `RequireArg(args, name)`, `GetArg(args, name)`, `HasFlag(args, name)` |
-| `exec.go` | `RunCommand(name, args...)`, `RunOsascript(script)`, `Which(bin)`, `CheckDependency(bin)` |
-| `fs.go` | `FileExists(path)`, `EnsureDir(path)`, `GetBaseName(path)` |
-| `core_context.go` | `AppContext{Meta, Values}`, `NewAppContext(ctx)` |
-| `lifecycle.go` | `Hook` interface (`Preflight`, `Postflight`), `RunLifecycle(app, hook, run)` |
-| `errors.go` | `CLIError`, `ResolveExitCode(err)`, `ExitSuccess`, `ExitUsage` |
-| `scaffold.go` | `ScaffoldNew(baseDir, name, module)`, `ScaffoldAddCommand(rootDir, name, desc, preset)`, `Doctor(rootDir) DoctorReport` |
+| `core_context.go` | `AppContext`, `IOStreams`, `AppMeta`, `NewAppContext(ctx)` |
+| `lifecycle.go` | `Hook` interface (`Preflight`, `Postflight`) |
+| `errors.go` | `CLIError`, `ExitCoder`, `ResolveExitCode(err)`, `NewCLIError()`, exit code constants |
+| `scaffold.go` | `DoctorFinding`, `DoctorReport`, `ScaffoldNewOptions` (model types only) |
+
+### DAL Layer (`dal/`)
+| File | Exported Symbols |
+|------|-----------------|
+| `dal/interfaces.go` | `FileSystem`, `Executor`, `Logger` interfaces, `DirEntry` |
+| `dal/filesystem.go` | `FileSystemImpl`, `NewFileSystem()` — Exists, EnsureDir, ReadFile, WriteFile, ReadDir, BaseName |
+| `dal/exec.go` | `ExecutorImpl`, `NewExecutor()` — Run, RunInDir, RunOsascript, Which |
+| `dal/logger.go` | `LoggerImpl`, `NewLogger()` — Init(verbose, writer) |
+
+### Operator Layer (`operator/`)
+| File | Exported Symbols |
+|------|-----------------|
+| `operator/interfaces.go` | `TemplateOperator`, `ComplianceOperator`, `ArgsOperator`, `TemplateData` |
+| `operator/args_op.go` | `ArgsOperatorImpl`, `NewArgsOperator()` — Parse, Require, Get, HasFlag |
+| `operator/template_op.go` | `TemplateOperatorImpl`, `NewTemplateOperator(fs)` — RenderTemplate, KebabToCamel, etc. |
+| `operator/compliance_op.go` | `ComplianceOperatorImpl`, `NewComplianceOperator(fs)` — CheckFileExists, CheckFileContains, ValidateCommandName |
+
+### Service Layer (`service/`)
+| File | Exported Symbols |
+|------|-----------------|
+| `service/container.go` | `Container`, `NewContainer()`, `Get()`, `Reset()` |
+| `service/wire.go` | `ProviderSet`, `InitializeContainer()` (Wire DI) |
+| `service/scaffold.go` | `ScaffoldService`, `NewScaffoldService()` — New, AddCommand |
+| `service/doctor.go` | `DoctorService`, `NewDoctorService()` — Run (with DAG compliance checks) |
+| `service/lifecycle.go` | `LifecycleService`, `NewLifecycleService()` — Run |
+| `service/templates.go` | All scaffold template constants |
+
+### Adapters
+| File | Exported Symbols |
+|------|-----------------|
 | `cobrax/cobrax.go` | `Execute(RootSpec, args) int`, `NewRoot(RootSpec) *cobra.Command`, `CommandSpec`, `RootSpec` |
 | `configx/configx.go` | `Load(Options) map[string]any`, `Decode[T](raw)`, `NormalizeEnv(prefix, environ)` |
 
@@ -35,23 +68,23 @@ Shared Go CLI helpers and framework modules.
 
 ### New project
 ```bash
-agentcli new --name my-tool --module github.com/me/my-tool
+agentcli new --dir . --module github.com/me/my-tool my-tool
 # or programmatically:
-agentcli.ScaffoldNew(".", "my-tool", "github.com/me/my-tool")
+service.Get().ScaffoldSvc.New(".", "my-tool", "github.com/me/my-tool", service.ScaffoldNewOptions{})
 ```
-Generates: `main.go`, `cmd/root.go`, `internal/app/`, `internal/config/`, `internal/io/`, `internal/tools/smokecheck/`, `pkg/version/`, `test/`, `Taskfile.yml`, `README.md`
+Generates: `main.go`, `cmd/root.go`, `service/`, `dal/`, `operator/`, `internal/app/`, `internal/config/`, `internal/io/`, `internal/tools/smokecheck/`, `pkg/version/`, `test/`, `Taskfile.yml`, `README.md`
 
 ### Add command
 ```bash
 agentcli add command --name sync --preset file-sync
 agentcli add command --name deploy --desc "run deploy checks"
 ```
-Presets: `file-sync`, `http-client`, `deploy-helper`
+Presets: `file-sync`, `http-client`, `deploy-helper`, `task-replay-orchestrator`
 
 ### Doctor check
 ```bash
-agentcli doctor [--dir ./my-tool]
-# returns DoctorReport JSON with findings
+agentcli doctor [--dir ./my-tool] [--json]
+# checks scaffold compliance + DAG layer presence
 ```
 
 ---
@@ -62,8 +95,17 @@ agentcli doctor [--dir ./my-tool]
 my-tool/
 ├── main.go                          # os.Exit(cmd.Execute(os.Args[1:]))
 ├── cmd/
-│   ├── root.go                      # cobrax.Execute(RootSpec{...})
+│   ├── root.go                      # cobrax.Execute(RootSpec{...}) → calls service.Get()
 │   └── <command>.go                 # func <Name>Command() command
+├── service/
+│   ├── container.go                 # Wire DI container + Get() singleton
+│   └── wire.go                      # Wire provider set
+├── operator/
+│   ├── interfaces.go                # Business logic contracts
+│   └── example_op.go               # Stub operator
+├── dal/
+│   ├── interfaces.go                # Data access contracts
+│   └── filesystem.go               # Default filesystem impl
 ├── internal/
 │   ├── app/{bootstrap,lifecycle,errors}.go
 │   ├── config/{schema,load}.go
@@ -73,8 +115,10 @@ my-tool/
 ├── test/
 │   ├── e2e/cli_test.go
 │   └── smoke/version.schema.json
-└── Taskfile.yml
+└── Taskfile.yml                     # includes wire task
 ```
+
+**Data flow:** `cmd/ → service.Get().XxxSvc.Method() → operator → dal`
 
 ---
 
@@ -102,7 +146,7 @@ Values accessible via `app.Values["json"]`, `app.Values["config"]`, etc.
 ```go
 raw, err := configx.Load(configx.Options{
     Defaults: map[string]any{"env": "default"},
-    FilePath: configPath,   // optional JSON file
+    FilePath: configPath,
     Env:      configx.NormalizeEnv("MYTOOL_", os.Environ()),
     Flags:    map[string]string{"env": flagVal},
 })
@@ -112,37 +156,43 @@ cfg, err := configx.Decode[config.Config](raw)
 
 ---
 
-## Taskfile Tasks
+## Wire DI Pattern
 
-| Task | Purpose |
-|------|---------|
-| `task ci` | Canonical CI: preflight + lint + test + build + smoke + schema checks |
-| `task verify` | Local aggregate (wraps ci) |
-| `task lint` | go vet + golangci-lint |
-| `task smoke` | Deterministic smoke tests (subset of unit tests) |
-| `task schema:check` | Validate JSON contracts against schemas |
-| `task docs:check` | Ensure skill docs match CLI help signatures |
-| `task fmt` | Format all Go files |
+```go
+// service/wire.go
+var ProviderSet = wire.NewSet(
+    dal.NewFileSystem,
+    wire.Bind(new(dal.FileSystem), new(*dal.FileSystemImpl)),
+    operator.NewMyOperator,
+    wire.Bind(new(operator.MyOperator), new(*operator.MyOperatorImpl)),
+    NewMyService,
+    NewContainer,
+)
+```
+
+Generate: `wire ./service/` or `task wire`
+
+---
+
+## Dependency Direction Rules
+
+- `dal` imports root only — no knowledge of operator/service
+- `operator` imports root + dal — transforms data, applies rules
+- `service` imports root + operator + dal — orchestrates multi-step flows
+- `cmd` imports service + root — CLI wiring only
+- Operators return errors (never `log.Fatal`)
 
 ---
 
 ## Rules
 
-- **Flat package** — everything in `package agentcli`, no sub-packages (except `cobrax`, `configx`)
-- **Exported only** — all functions PascalCase; this is a library
-- **No business logic** — generic utilities only; must be reused across 2+ projects to qualify
-- **`log.Fatal` allowed** in `RequireArg`, `CheckDependency` (CLI-oriented helpers)
-- **Minimal deps** — zerolog, lo, cobra only; justify new additions
+- **Root = model only** — shared contracts (types, interfaces, error codes)
+- **New code → DAG layer** — dal for I/O, operator for logic, service for orchestration
+- **Exported only** — all types/functions PascalCase
+- **Minimal deps** — zerolog, cobra, wire; justify new additions
+- **No business logic in root** — generic model types only
 
 ## Out of Scope
 
 - Project-specific logic (put that in consuming projects)
 - Adding functions used by only one project
-
-## Distribution notes (Codex / Claude / ClawHub)
-
-- This file is the canonical local skill descriptor for agent integrations.
-- For external platform entries (Codex/Claude/ClawHub), keep:
-  - customer-facing context aligned with `README.md`
-  - agent onboarding/checklist content in `agents.md`
-  - command semantics and install checks in `skills/*/SKILL.md`

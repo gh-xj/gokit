@@ -1,7 +1,13 @@
 package app
 
-import "github.com/gh-xj/agentcli-go"
+import (
+	"os"
+	"slices"
+
+	"github.com/gh-xj/agentcli-go/dal"
+)
 
 func Bootstrap() {
-	agentcli.InitLogger()
+	verbose := slices.Contains(os.Args, "-v") || slices.Contains(os.Args, "--verbose")
+	dal.NewLogger().Init(verbose, os.Stderr)
 }
