@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	agentcli "github.com/gh-xj/agentcli-go"
+	"github.com/gh-xj/agentcli-go/service"
 	harness "github.com/gh-xj/agentcli-go/tools/harness"
 	loopcommands "github.com/gh-xj/agentcli-go/tools/harness/commands"
 )
@@ -129,7 +130,7 @@ func TestRunMigrateDryRunPrintsPlanWithoutWriting(t *testing.T) {
 		}
 	})
 
-	if agentcli.FileExists(filepath.Join(repoRoot, "agentcli-migrated")) {
+	if _, err := os.Stat(filepath.Join(repoRoot, "agentcli-migrated")); err == nil {
 		t.Fatalf("dry-run should not create output workspace")
 	}
 }
@@ -156,7 +157,7 @@ func TestRunMigrateApplyCreatesSafeWorkspace(t *testing.T) {
 		}
 	})
 
-	if !agentcli.FileExists(filepath.Join(repoRoot, "agentcli-migrated", "docs", "migration", "plan.json")) {
+	if _, err := os.Stat(filepath.Join(repoRoot, "agentcli-migrated", "docs", "migration", "plan.json")); err != nil {
 		t.Fatalf("expected migration plan artifact in safe workspace")
 	}
 }
@@ -175,7 +176,7 @@ func TestRunMigrateHelp(t *testing.T) {
 
 func TestRunAddCommandWithDescription(t *testing.T) {
 	root := t.TempDir()
-	projectPath, err := agentcli.ScaffoldNew(root, "samplecli", "example.com/samplecli")
+	projectPath, err := service.Get().ScaffoldSvc.New(root, "samplecli", "example.com/samplecli", service.ScaffoldNewOptions{})
 	if err != nil {
 		t.Fatalf("ScaffoldNew failed: %v", err)
 	}
@@ -209,7 +210,7 @@ func TestRunAddCommandDescriptionRequiresValue(t *testing.T) {
 
 func TestRunAddCommandWithPreset(t *testing.T) {
 	root := t.TempDir()
-	projectPath, err := agentcli.ScaffoldNew(root, "samplecli", "example.com/samplecli")
+	projectPath, err := service.Get().ScaffoldSvc.New(root, "samplecli", "example.com/samplecli", service.ScaffoldNewOptions{})
 	if err != nil {
 		t.Fatalf("ScaffoldNew failed: %v", err)
 	}
@@ -250,7 +251,7 @@ func TestRunAddCommandListPresets(t *testing.T) {
 
 func TestRunAddCommandRejectsUnknownPreset(t *testing.T) {
 	root := t.TempDir()
-	projectPath, err := agentcli.ScaffoldNew(root, "samplecli", "example.com/samplecli")
+	projectPath, err := service.Get().ScaffoldSvc.New(root, "samplecli", "example.com/samplecli", service.ScaffoldNewOptions{})
 	if err != nil {
 		t.Fatalf("ScaffoldNew failed: %v", err)
 	}
@@ -269,7 +270,7 @@ func TestRunAddCommandRejectsUnknownPreset(t *testing.T) {
 
 func TestRunAddCommandUsesPresetSpecificStub(t *testing.T) {
 	root := t.TempDir()
-	projectPath, err := agentcli.ScaffoldNew(root, "samplecli", "example.com/samplecli")
+	projectPath, err := service.Get().ScaffoldSvc.New(root, "samplecli", "example.com/samplecli", service.ScaffoldNewOptions{})
 	if err != nil {
 		t.Fatalf("ScaffoldNew failed: %v", err)
 	}
@@ -299,7 +300,7 @@ func TestRunAddCommandUsesPresetSpecificStub(t *testing.T) {
 
 func TestRunAddCommandTaskReplayOrchestratorPreset(t *testing.T) {
 	root := t.TempDir()
-	projectPath, err := agentcli.ScaffoldNew(root, "samplecli", "example.com/samplecli")
+	projectPath, err := service.Get().ScaffoldSvc.New(root, "samplecli", "example.com/samplecli", service.ScaffoldNewOptions{})
 	if err != nil {
 		t.Fatalf("ScaffoldNew failed: %v", err)
 	}
@@ -344,7 +345,7 @@ func TestRunNewInExistingModuleMode(t *testing.T) {
 	}
 
 	projectPath := filepath.Join(moduleRoot, "tools", "samplecli")
-	if agentcli.FileExists(filepath.Join(projectPath, "go.mod")) {
+	if _, err := os.Stat(filepath.Join(projectPath, "go.mod")); err == nil {
 		t.Fatalf("expected no nested go.mod in existing-module mode")
 	}
 }
@@ -374,10 +375,13 @@ func TestRunNewMinimalMode(t *testing.T) {
 	}
 
 	projectPath := filepath.Join(root, "samplecli")
-	if !agentcli.FileExists(filepath.Join(projectPath, "go.mod")) || !agentcli.FileExists(filepath.Join(projectPath, "go.sum")) {
-		t.Fatalf("expected go.mod and go.sum in minimal mode")
+	if _, err := os.Stat(filepath.Join(projectPath, "go.mod")); err != nil {
+		t.Fatalf("expected go.mod in minimal mode")
 	}
-	if agentcli.FileExists(filepath.Join(projectPath, "internal", "app", "bootstrap.go")) {
+	if _, err := os.Stat(filepath.Join(projectPath, "go.sum")); err != nil {
+		t.Fatalf("expected go.sum in minimal mode")
+	}
+	if _, err := os.Stat(filepath.Join(projectPath, "internal", "app", "bootstrap.go")); err == nil {
 		t.Fatalf("did not expect full scaffold internals in minimal mode")
 	}
 }
