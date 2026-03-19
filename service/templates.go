@@ -277,13 +277,15 @@ func Bootstrap() {
 
 const appLifecycleTpl = `package app
 
+import agentcli "github.com/gh-xj/agentcli-go"
+
 type Hooks struct{}
 
-func (Hooks) Preflight() error {
+func (Hooks) Preflight(_ *agentcli.AppContext) error {
 	return nil
 }
 
-func (Hooks) Postflight() error {
+func (Hooks) Postflight(_ *agentcli.AppContext) error {
 	return nil
 }
 `

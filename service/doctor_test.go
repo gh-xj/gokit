@@ -20,7 +20,7 @@ func createFullProject(t *testing.T) string {
 		"cmd/root.go": "package cmd\n\nimport (\n\t\"github.com/gh-xj/agentcli-go/cobrax\"\n)\n\n" +
 			"func init() {\n\t// agentcli:add-command\n}\n\nvar _ = cobrax.Execute\n",
 		"internal/app/bootstrap.go":         "package app\n",
-		"internal/app/lifecycle.go":         "package app\n\nfunc Preflight() error { return nil }\nfunc Postflight() error { return nil }\n",
+		"internal/app/lifecycle.go":         "package app\n\nfunc (Hooks) Preflight(_ *agentcli.AppContext) error { return nil }\nfunc (Hooks) Postflight(_ *agentcli.AppContext) error { return nil }\n",
 		"internal/app/errors.go":            "package app\n",
 		"internal/config/schema.go":         "package config\n",
 		"internal/config/load.go":           "package config\n",
