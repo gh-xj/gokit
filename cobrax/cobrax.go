@@ -5,7 +5,7 @@ import (
 	"os"
 	"strings"
 
-	agentcli "github.com/gh-xj/agentops"
+	agentops "github.com/gh-xj/agentops"
 	"github.com/spf13/cobra"
 )
 
@@ -13,14 +13,14 @@ import (
 type CommandSpec struct {
 	Use   string
 	Short string
-	Run   func(*agentcli.AppContext, []string) error
+	Run   func(*agentops.AppContext, []string) error
 }
 
 // RootSpec defines the root command contract and shared runtime settings.
 type RootSpec struct {
 	Use      string
 	Short    string
-	Meta     agentcli.AppMeta
+	Meta     agentops.AppMeta
 	Commands []CommandSpec
 }
 
@@ -42,7 +42,7 @@ func NewRoot(spec RootSpec) *cobra.Command {
 			Use:   cmdSpec.Use,
 			Short: cmdSpec.Short,
 			RunE: func(cmd *cobra.Command, args []string) error {
-				app := agentcli.NewAppContext(cmd.Context())
+				app := agentops.NewAppContext(cmd.Context())
 				app.Meta = spec.Meta
 
 				jsonFlag, _ := cmd.Flags().GetBool("json")
@@ -73,17 +73,17 @@ func Execute(spec RootSpec, args []string) int {
 		fmt.Fprintln(os.Stderr, err.Error())
 		return resolveCode(err)
 	}
-	return agentcli.ExitSuccess
+	return agentops.ExitSuccess
 }
 
 func resolveCode(err error) int {
 	if err == nil {
-		return agentcli.ExitSuccess
+		return agentops.ExitSuccess
 	}
 	if code := usageErrorCode(err); code != 0 {
 		return code
 	}
-	return agentcli.ResolveExitCode(err)
+	return agentops.ResolveExitCode(err)
 }
 
 func usageErrorCode(err error) int {
@@ -100,7 +100,7 @@ func usageErrorCode(err error) int {
 	}
 	for _, marker := range usageIndicators {
 		if strings.Contains(strings.ToLower(text), marker) {
-			return agentcli.ExitUsage
+			return agentops.ExitUsage
 		}
 	}
 	return 0

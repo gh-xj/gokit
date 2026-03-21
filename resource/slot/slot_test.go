@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	agentcli "github.com/gh-xj/agentops"
+	agentops "github.com/gh-xj/agentops"
 	"github.com/gh-xj/agentops/dal"
 	"github.com/gh-xj/agentops/resource"
 )
@@ -37,10 +37,10 @@ func setupGitRepo(t *testing.T) string {
 
 // newTestResource creates a SlotResource wired to real dal implementations
 // with the projectDir override set.
-func newTestResource(t *testing.T, projectDir string) (*SlotResource, *agentcli.AppContext) {
+func newTestResource(t *testing.T, projectDir string) (*SlotResource, *agentops.AppContext) {
 	t.Helper()
 	sr := New(&realFS{}, &realExec{})
-	ctx := agentcli.NewAppContext(context.Background())
+	ctx := agentops.NewAppContext(context.Background())
 	ctx.Values["project_dir"] = projectDir
 	return sr, ctx
 }

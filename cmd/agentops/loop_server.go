@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"os"
 
-	agentcli "github.com/gh-xj/agentops"
+	agentops "github.com/gh-xj/agentops"
 	"github.com/gh-xj/agentops/internal/loopapi"
 )
 
@@ -19,26 +19,26 @@ func runLoopServer(args []string) int {
 		case "--addr":
 			if i+1 >= len(args) {
 				fmt.Fprintln(os.Stderr, "--addr requires a value")
-				return agentcli.ExitUsage
+				return agentops.ExitUsage
 			}
 			addr = args[i+1]
 			i++
 		case "--repo-root":
 			if i+1 >= len(args) {
 				fmt.Fprintln(os.Stderr, "--repo-root requires a value")
-				return agentcli.ExitUsage
+				return agentops.ExitUsage
 			}
 			repoRoot = args[i+1]
 			i++
 		default:
 			fmt.Fprintf(os.Stderr, "unexpected argument: %s\n", args[i])
-			return agentcli.ExitUsage
+			return agentops.ExitUsage
 		}
 	}
 
 	if err := loopapi.Serve(addr, repoRoot); err != nil {
 		fmt.Fprintln(os.Stderr, err.Error())
-		return agentcli.ExitFailure
+		return agentops.ExitFailure
 	}
-	return agentcli.ExitSuccess
+	return agentops.ExitSuccess
 }

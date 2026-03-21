@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	agentcli "github.com/gh-xj/agentops"
+	agentops "github.com/gh-xj/agentops"
 	"github.com/gh-xj/agentops/resource"
 )
 
@@ -171,10 +171,10 @@ func TestRenderTSV(t *testing.T) {
 
 func TestRenderDoctorReportJSON(t *testing.T) {
 	var buf bytes.Buffer
-	report := agentcli.DoctorReport{
+	report := agentops.DoctorReport{
 		SchemaVersion: "1",
 		OK:            false,
-		Findings: []agentcli.DoctorFinding{
+		Findings: []agentops.DoctorFinding{
 			{Code: "E001", Path: "/foo/bar", Message: "missing file"},
 		},
 	}
@@ -195,7 +195,7 @@ func TestRenderDoctorReportJSON(t *testing.T) {
 
 func TestRenderDoctorReportTable(t *testing.T) {
 	var buf bytes.Buffer
-	report := agentcli.DoctorReport{
+	report := agentops.DoctorReport{
 		SchemaVersion: "1",
 		OK:            true,
 		Findings:      nil,

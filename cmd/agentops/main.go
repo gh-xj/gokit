@@ -4,7 +4,7 @@ import (
 	"context"
 	"os"
 
-	agentcli "github.com/gh-xj/agentops"
+	agentops "github.com/gh-xj/agentops"
 	"github.com/gh-xj/agentops/cobrax"
 	"github.com/gh-xj/agentops/dal"
 	"github.com/gh-xj/agentops/resource"
@@ -14,7 +14,7 @@ import (
 	"github.com/gh-xj/agentops/strategy"
 )
 
-var appMeta = agentcli.AppMeta{
+var appMeta = agentops.AppMeta{
 	Name:    "agentops",
 	Version: "dev",
 	Commit:  "none",
@@ -22,7 +22,7 @@ var appMeta = agentcli.AppMeta{
 }
 
 func main() {
-	ctx := agentcli.NewAppContext(context.Background())
+	ctx := agentops.NewAppContext(context.Background())
 	fs := dal.NewFileSystem()
 	exec := dal.NewExecutor()
 

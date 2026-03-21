@@ -7,10 +7,10 @@ import (
 	"fmt"
 	"os"
 
-	agentcli "github.com/gh-xj/agentops"
+	agentops "github.com/gh-xj/agentops"
 )
 
 func runLoopServer(_ []string) int {
 	fmt.Fprintln(os.Stderr, "loop-server is disabled in agentcli_core build; rebuild without -tags agentcli_core to enable loop server")
-	return agentcli.ExitUsage
+	return agentops.ExitUsage
 }

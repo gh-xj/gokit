@@ -1,6 +1,6 @@
 package resource
 
-import agentcli "github.com/gh-xj/agentops"
+import agentops "github.com/gh-xj/agentops"
 
 // Record is a generic representation of a resource instance.
 type Record struct {
@@ -39,27 +39,27 @@ type ArgDef struct {
 // Resource is the core interface every agentops resource kind must implement.
 type Resource interface {
 	Schema() ResourceSchema
-	Create(ctx *agentcli.AppContext, slug string, opts map[string]string) (*Record, error)
-	List(ctx *agentcli.AppContext, filter Filter) ([]Record, error)
-	Get(ctx *agentcli.AppContext, id string) (*Record, error)
+	Create(ctx *agentops.AppContext, slug string, opts map[string]string) (*Record, error)
+	List(ctx *agentops.AppContext, filter Filter) ([]Record, error)
+	Get(ctx *agentops.AppContext, id string) (*Record, error)
 }
 
 // Validator is an optional interface for resources that support compliance checks.
 type Validator interface {
-	Validate(ctx *agentcli.AppContext, id string) (*agentcli.DoctorReport, error)
+	Validate(ctx *agentops.AppContext, id string) (*agentops.DoctorReport, error)
 }
 
 // Deleter is an optional interface for resources that support deletion.
 type Deleter interface {
-	Delete(ctx *agentcli.AppContext, id string) error
+	Delete(ctx *agentops.AppContext, id string) error
 }
 
 // Syncer is an optional interface for resources that support external sync.
 type Syncer interface {
-	Sync(ctx *agentcli.AppContext, id string) error
+	Sync(ctx *agentops.AppContext, id string) error
 }
 
 // Transitioner is an optional interface for resources with state machines.
 type Transitioner interface {
-	Transition(ctx *agentcli.AppContext, id string, action string) (*Record, error)
+	Transition(ctx *agentops.AppContext, id string, action string) (*Record, error)
 }

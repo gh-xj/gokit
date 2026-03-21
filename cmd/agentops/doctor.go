@@ -5,12 +5,12 @@ import (
 	"os"
 	"path/filepath"
 
-	agentcli "github.com/gh-xj/agentops"
+	agentops "github.com/gh-xj/agentops"
 	"github.com/gh-xj/agentops/resource"
 	"github.com/spf13/cobra"
 )
 
-func newDoctorCmd(reg *resource.Registry, ctx *agentcli.AppContext) *cobra.Command {
+func newDoctorCmd(reg *resource.Registry, ctx *agentops.AppContext) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "doctor",
 		Short: "Validate strategy and resource health",
@@ -20,7 +20,7 @@ func newDoctorCmd(reg *resource.Registry, ctx *agentcli.AppContext) *cobra.Comma
 				dir = "."
 			}
 
-			report := agentcli.DoctorReport{
+			report := agentops.DoctorReport{
 				SchemaVersion: "1.0",
 				OK:            true,
 			}
@@ -32,7 +32,7 @@ func newDoctorCmd(reg *resource.Registry, ctx *agentcli.AppContext) *cobra.Comma
 				p := filepath.Join(agentopsDir, name)
 				if _, err := os.Stat(p); err != nil {
 					report.OK = false
-					report.Findings = append(report.Findings, agentcli.DoctorFinding{
+					report.Findings = append(report.Findings, agentops.DoctorFinding{
 						Code:    "missing_file",
 						Path:    p,
 						Message: fmt.Sprintf("required file missing: %s", name),
@@ -49,7 +49,7 @@ func newDoctorCmd(reg *resource.Registry, ctx *agentcli.AppContext) *cobra.Comma
 				schema := res.Schema()
 				records, err := res.List(ctx, nil)
 				if err != nil {
-					report.Findings = append(report.Findings, agentcli.DoctorFinding{
+					report.Findings = append(report.Findings, agentops.DoctorFinding{
 						Code:    "list_error",
 						Path:    schema.Kind,
 						Message: fmt.Sprintf("failed to list %s resources: %s", schema.Kind, err),
@@ -60,7 +60,7 @@ func newDoctorCmd(reg *resource.Registry, ctx *agentcli.AppContext) *cobra.Comma
 				for _, rec := range records {
 					sub, err := v.Validate(ctx, rec.ID)
 					if err != nil {
-						report.Findings = append(report.Findings, agentcli.DoctorFinding{
+						report.Findings = append(report.Findings, agentops.DoctorFinding{
 							Code:    "validate_error",
 							Path:    rec.ID,
 							Message: fmt.Sprintf("validate %s %s: %s", schema.Kind, rec.ID, err),

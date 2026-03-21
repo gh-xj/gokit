@@ -1,4 +1,4 @@
-package agentcli
+package agentops
 
 import (
 	"errors"

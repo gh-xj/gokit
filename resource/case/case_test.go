@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	agentcli "github.com/gh-xj/agentops"
+	agentops "github.com/gh-xj/agentops"
 	"github.com/gh-xj/agentops/dal"
 	"github.com/gh-xj/agentops/strategy"
 )
@@ -35,8 +35,8 @@ func setupTestProject(t *testing.T) (string, *strategy.Strategy) {
 	return tmp, strat
 }
 
-func testCtx() *agentcli.AppContext {
-	return agentcli.NewAppContext(context.Background())
+func testCtx() *agentops.AppContext {
+	return agentops.NewAppContext(context.Background())
 }
 
 func TestCaseResourceSchema(t *testing.T) {

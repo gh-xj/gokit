@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	agentcli "github.com/gh-xj/agentops"
+	agentops "github.com/gh-xj/agentops"
 	"github.com/gh-xj/agentops/dal"
 	"github.com/gh-xj/agentops/resource"
 	"github.com/gh-xj/agentops/strategy"
@@ -92,7 +92,7 @@ func (cr *CaseResource) Schema() resource.ResourceSchema {
 }
 
 // Create creates a new case directory and case.md file.
-func (cr *CaseResource) Create(ctx *agentcli.AppContext, slug string, opts map[string]string) (*resource.Record, error) {
+func (cr *CaseResource) Create(ctx *agentops.AppContext, slug string, opts map[string]string) (*resource.Record, error) {
 	if cr.strat == nil {
 		return nil, fmt.Errorf("no strategy loaded")
 	}
@@ -169,7 +169,7 @@ func (cr *CaseResource) Create(ctx *agentcli.AppContext, slug string, opts map[s
 }
 
 // List walks the cases directory and returns matching records.
-func (cr *CaseResource) List(ctx *agentcli.AppContext, filter resource.Filter) ([]resource.Record, error) {
+func (cr *CaseResource) List(ctx *agentops.AppContext, filter resource.Filter) ([]resource.Record, error) {
 	if cr.strat == nil {
 		return nil, fmt.Errorf("no strategy loaded")
 	}
@@ -231,7 +231,7 @@ func (cr *CaseResource) List(ctx *agentcli.AppContext, filter resource.Filter) (
 }
 
 // Get retrieves a case record by its ID.
-func (cr *CaseResource) Get(ctx *agentcli.AppContext, id string) (*resource.Record, error) {
+func (cr *CaseResource) Get(ctx *agentops.AppContext, id string) (*resource.Record, error) {
 	if cr.strat == nil {
 		return nil, fmt.Errorf("no strategy loaded")
 	}
@@ -255,7 +255,7 @@ func (cr *CaseResource) Get(ctx *agentcli.AppContext, id string) (*resource.Reco
 }
 
 // Validate checks that a case has all required frontmatter fields.
-func (cr *CaseResource) Validate(ctx *agentcli.AppContext, id string) (*agentcli.DoctorReport, error) {
+func (cr *CaseResource) Validate(ctx *agentops.AppContext, id string) (*agentops.DoctorReport, error) {
 	if cr.strat == nil {
 		return nil, fmt.Errorf("no strategy loaded")
 	}
@@ -270,7 +270,7 @@ func (cr *CaseResource) Validate(ctx *agentcli.AppContext, id string) (*agentcli
 		return nil, fmt.Errorf("read case.md: %w", err)
 	}
 
-	report := &agentcli.DoctorReport{
+	report := &agentops.DoctorReport{
 		SchemaVersion: "1.0",
 		OK:            true,
 	}
@@ -278,7 +278,7 @@ func (cr *CaseResource) Validate(ctx *agentcli.AppContext, id string) (*agentcli
 	fm, _, fmErr := ParseFrontmatter(string(data))
 	if fmErr != nil {
 		report.OK = false
-		report.Findings = append(report.Findings, agentcli.DoctorFinding{
+		report.Findings = append(report.Findings, agentops.DoctorFinding{
 			Code:    "missing_frontmatter",
 			Path:    caseMDPath,
 			Message: "case.md has no valid YAML frontmatter",
@@ -288,7 +288,7 @@ func (cr *CaseResource) Validate(ctx *agentcli.AppContext, id string) (*agentcli
 
 	if fm.Type == "" {
 		report.OK = false
-		report.Findings = append(report.Findings, agentcli.DoctorFinding{
+		report.Findings = append(report.Findings, agentops.DoctorFinding{
 			Code:    "missing_field",
 			Path:    caseMDPath,
 			Message: "missing required field: type",
@@ -296,7 +296,7 @@ func (cr *CaseResource) Validate(ctx *agentcli.AppContext, id string) (*agentcli
 	}
 	if fm.Status == "" {
 		report.OK = false
-		report.Findings = append(report.Findings, agentcli.DoctorFinding{
+		report.Findings = append(report.Findings, agentops.DoctorFinding{
 			Code:    "missing_field",
 			Path:    caseMDPath,
 			Message: "missing required field: status",
@@ -304,7 +304,7 @@ func (cr *CaseResource) Validate(ctx *agentcli.AppContext, id string) (*agentcli
 	}
 	if fm.Created == "" {
 		report.OK = false
-		report.Findings = append(report.Findings, agentcli.DoctorFinding{
+		report.Findings = append(report.Findings, agentops.DoctorFinding{
 			Code:    "missing_field",
 			Path:    caseMDPath,
 			Message: "missing required field: created",
@@ -315,7 +315,7 @@ func (cr *CaseResource) Validate(ctx *agentcli.AppContext, id string) (*agentcli
 }
 
 // Transition applies a state machine action to a case and returns the updated record.
-func (cr *CaseResource) Transition(ctx *agentcli.AppContext, id string, action string) (*resource.Record, error) {
+func (cr *CaseResource) Transition(ctx *agentops.AppContext, id string, action string) (*resource.Record, error) {
 	if cr.strat == nil {
 		return nil, fmt.Errorf("no strategy loaded")
 	}

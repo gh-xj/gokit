@@ -3,7 +3,7 @@ package resource
 import (
 	"testing"
 
-	agentcli "github.com/gh-xj/agentops"
+	agentops "github.com/gh-xj/agentops"
 )
 
 // mockResource implements the Resource interface for testing.
@@ -15,15 +15,15 @@ func (m *mockResource) Schema() ResourceSchema {
 	return ResourceSchema{Kind: m.kind, Description: "mock " + m.kind}
 }
 
-func (m *mockResource) Create(_ *agentcli.AppContext, _ string, _ map[string]string) (*Record, error) {
+func (m *mockResource) Create(_ *agentops.AppContext, _ string, _ map[string]string) (*Record, error) {
 	return &Record{Kind: m.kind, ID: "new"}, nil
 }
 
-func (m *mockResource) List(_ *agentcli.AppContext, _ Filter) ([]Record, error) {
+func (m *mockResource) List(_ *agentops.AppContext, _ Filter) ([]Record, error) {
 	return nil, nil
 }
 
-func (m *mockResource) Get(_ *agentcli.AppContext, id string) (*Record, error) {
+func (m *mockResource) Get(_ *agentops.AppContext, id string) (*Record, error) {
 	return &Record{Kind: m.kind, ID: id}, nil
 }
 

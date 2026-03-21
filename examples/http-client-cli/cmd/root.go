@@ -12,7 +12,7 @@ import (
 
 type command struct {
 	Description string
-	Run         func(*agentcli.AppContext, []string) error
+	Run         func(*agentops.AppContext, []string) error
 }
 
 var commandRegistry = map[string]command{}
@@ -30,7 +30,7 @@ func registerCommand(name string, cmd command) {
 func registerBuiltins() {
 	registerCommand("version", command{
 		Description: "print build metadata",
-		Run: func(app *agentcli.AppContext, _ []string) error {
+		Run: func(app *agentops.AppContext, _ []string) error {
 			data := map[string]string{
 				"schema_version": "v1",
 				"name":           "http-client-cli",
@@ -68,7 +68,7 @@ func Execute(args []string) int {
 	return cobrax.Execute(cobrax.RootSpec{
 		Use:   "http-client-cli",
 		Short: "http-client-cli CLI",
-		Meta: agentcli.AppMeta{
+		Meta: agentops.AppMeta{
 			Name:    "http-client-cli",
 			Version: "dev",
 			Commit:  "none",

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"regexp"
 
-	agentcli "github.com/gh-xj/agentops"
+	agentops "github.com/gh-xj/agentops"
 	"github.com/gh-xj/agentops/dal"
 	"github.com/gh-xj/agentops/resource"
 )
@@ -40,7 +40,7 @@ func (s *SlotResource) Schema() resource.ResourceSchema {
 
 // projectDir resolves the project directory from the AppContext or detects it
 // from the current git repo root.
-func (s *SlotResource) projectDir(ctx *agentcli.AppContext) (string, error) {
+func (s *SlotResource) projectDir(ctx *agentops.AppContext) (string, error) {
 	if v, ok := ctx.Values["project_dir"]; ok {
 		if dir, ok := v.(string); ok && dir != "" {
 			return dir, nil
@@ -58,7 +58,7 @@ func (s *SlotResource) projectDir(ctx *agentcli.AppContext) (string, error) {
 }
 
 // Create validates the name and creates a worktree slot.
-func (s *SlotResource) Create(ctx *agentcli.AppContext, slug string, opts map[string]string) (*resource.Record, error) {
+func (s *SlotResource) Create(ctx *agentops.AppContext, slug string, opts map[string]string) (*resource.Record, error) {
 	if !slotNamePattern.MatchString(slug) {
 		return nil, fmt.Errorf("invalid slot name %q: must match ^[a-z][a-z0-9-]*$", slug)
 	}
@@ -77,7 +77,7 @@ func (s *SlotResource) Create(ctx *agentcli.AppContext, slug string, opts map[st
 }
 
 // List returns all slots for the project.
-func (s *SlotResource) List(ctx *agentcli.AppContext, filter resource.Filter) ([]resource.Record, error) {
+func (s *SlotResource) List(ctx *agentops.AppContext, filter resource.Filter) ([]resource.Record, error) {
 	projectDir, err := s.projectDir(ctx)
 	if err != nil {
 		return nil, err
@@ -96,7 +96,7 @@ func (s *SlotResource) List(ctx *agentcli.AppContext, filter resource.Filter) ([
 }
 
 // Get returns a single slot by name.
-func (s *SlotResource) Get(ctx *agentcli.AppContext, id string) (*resource.Record, error) {
+func (s *SlotResource) Get(ctx *agentops.AppContext, id string) (*resource.Record, error) {
 	projectDir, err := s.projectDir(ctx)
 	if err != nil {
 		return nil, err
@@ -116,7 +116,7 @@ func (s *SlotResource) Get(ctx *agentcli.AppContext, id string) (*resource.Recor
 }
 
 // Delete removes a slot worktree after checking for uncommitted changes.
-func (s *SlotResource) Delete(ctx *agentcli.AppContext, id string) error {
+func (s *SlotResource) Delete(ctx *agentops.AppContext, id string) error {
 	projectDir, err := s.projectDir(ctx)
 	if err != nil {
 		return err
@@ -125,7 +125,7 @@ func (s *SlotResource) Delete(ctx *agentcli.AppContext, id string) error {
 }
 
 // Sync rebases the slot branch onto origin/main.
-func (s *SlotResource) Sync(ctx *agentcli.AppContext, id string) error {
+func (s *SlotResource) Sync(ctx *agentops.AppContext, id string) error {
 	projectDir, err := s.projectDir(ctx)
 	if err != nil {
 		return err

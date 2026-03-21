@@ -7,7 +7,7 @@ import (
 	"strings"
 	"text/template"
 
-	agentcli "github.com/gh-xj/agentops"
+	agentops "github.com/gh-xj/agentops"
 	"github.com/gh-xj/agentops/dal"
 	"github.com/gh-xj/agentops/resource"
 )
@@ -49,7 +49,7 @@ type templateData struct {
 
 // Create scaffolds a new Go CLI project directory.
 // slug is the project name. opts can contain "module", "mode", and "base_dir".
-func (p *ProjectResource) Create(ctx *agentcli.AppContext, slug string, opts map[string]string) (*resource.Record, error) {
+func (p *ProjectResource) Create(ctx *agentops.AppContext, slug string, opts map[string]string) (*resource.Record, error) {
 	if strings.TrimSpace(slug) == "" {
 		return nil, errors.New("project name (slug) is required")
 	}
@@ -101,12 +101,12 @@ func (p *ProjectResource) Create(ctx *agentcli.AppContext, slug string, opts map
 }
 
 // List returns an empty slice. Projects are not tracked after creation.
-func (p *ProjectResource) List(_ *agentcli.AppContext, _ resource.Filter) ([]resource.Record, error) {
+func (p *ProjectResource) List(_ *agentops.AppContext, _ resource.Filter) ([]resource.Record, error) {
 	return []resource.Record{}, nil
 }
 
 // Get returns an error. Individual project lookup is not supported.
-func (p *ProjectResource) Get(_ *agentcli.AppContext, id string) (*resource.Record, error) {
+func (p *ProjectResource) Get(_ *agentops.AppContext, id string) (*resource.Record, error) {
 	return nil, fmt.Errorf("project resource does not support Get (requested %q)", id)
 }
 

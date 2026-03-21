@@ -1,4 +1,4 @@
-package agentcli
+package agentops
 
 // Hook allows commands to run standardized pre/post execution steps.
 type Hook interface {

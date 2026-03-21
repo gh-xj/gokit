@@ -5,7 +5,7 @@ import (
 	"os"
 	"strings"
 
-	agentcli "github.com/gh-xj/agentops"
+	agentops "github.com/gh-xj/agentops"
 	"github.com/gh-xj/agentops/resource"
 	"github.com/spf13/cobra"
 )
@@ -17,7 +17,7 @@ import (
 //   - If Deleter: remove
 //   - If Syncer: sync
 //   - If Transitioner: transition
-func GenerateResourceCommands(reg *resource.Registry, root *cobra.Command, ctx *agentcli.AppContext) {
+func GenerateResourceCommands(reg *resource.Registry, root *cobra.Command, ctx *agentops.AppContext) {
 	for _, res := range reg.All() {
 		schema := res.Schema()
 		nounCmd := &cobra.Command{
@@ -86,7 +86,7 @@ func parseFieldList(s string) []string {
 	return fields
 }
 
-func makeCreateCmd(res resource.Resource, schema resource.ResourceSchema, ctx *agentcli.AppContext) *cobra.Command {
+func makeCreateCmd(res resource.Resource, schema resource.ResourceSchema, ctx *agentops.AppContext) *cobra.Command {
 	return &cobra.Command{
 		Use:   "create <slug>",
 		Short: fmt.Sprintf("Create a new %s", schema.Kind),
@@ -103,7 +103,7 @@ func makeCreateCmd(res resource.Resource, schema resource.ResourceSchema, ctx *a
 	}
 }
 
-func makeListCmd(res resource.Resource, schema resource.ResourceSchema, ctx *agentcli.AppContext) *cobra.Command {
+func makeListCmd(res resource.Resource, schema resource.ResourceSchema, ctx *agentops.AppContext) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "list",
 		Short: fmt.Sprintf("List %s resources", schema.Kind),
@@ -129,7 +129,7 @@ func makeListCmd(res resource.Resource, schema resource.ResourceSchema, ctx *age
 	return cmd
 }
 
-func makeGetCmd(res resource.Resource, schema resource.ResourceSchema, ctx *agentcli.AppContext) *cobra.Command {
+func makeGetCmd(res resource.Resource, schema resource.ResourceSchema, ctx *agentops.AppContext) *cobra.Command {
 	return &cobra.Command{
 		Use:   "get <id>",
 		Short: fmt.Sprintf("Get a %s by ID", schema.Kind),
@@ -146,7 +146,7 @@ func makeGetCmd(res resource.Resource, schema resource.ResourceSchema, ctx *agen
 	}
 }
 
-func makeValidateCmd(v resource.Validator, schema resource.ResourceSchema, ctx *agentcli.AppContext) *cobra.Command {
+func makeValidateCmd(v resource.Validator, schema resource.ResourceSchema, ctx *agentops.AppContext) *cobra.Command {
 	return &cobra.Command{
 		Use:   "validate <id>",
 		Short: fmt.Sprintf("Validate a %s", schema.Kind),
@@ -164,7 +164,7 @@ func makeValidateCmd(v resource.Validator, schema resource.ResourceSchema, ctx *
 	}
 }
 
-func makeRemoveCmd(d resource.Deleter, schema resource.ResourceSchema, ctx *agentcli.AppContext) *cobra.Command {
+func makeRemoveCmd(d resource.Deleter, schema resource.ResourceSchema, ctx *agentops.AppContext) *cobra.Command {
 	return &cobra.Command{
 		Use:   "remove <id>",
 		Short: fmt.Sprintf("Remove a %s", schema.Kind),
@@ -179,7 +179,7 @@ func makeRemoveCmd(d resource.Deleter, schema resource.ResourceSchema, ctx *agen
 	}
 }
 
-func makeSyncCmd(s resource.Syncer, schema resource.ResourceSchema, ctx *agentcli.AppContext) *cobra.Command {
+func makeSyncCmd(s resource.Syncer, schema resource.ResourceSchema, ctx *agentops.AppContext) *cobra.Command {
 	return &cobra.Command{
 		Use:   "sync <id>",
 		Short: fmt.Sprintf("Sync a %s", schema.Kind),
@@ -194,7 +194,7 @@ func makeSyncCmd(s resource.Syncer, schema resource.ResourceSchema, ctx *agentcl
 	}
 }
 
-func makeTransitionCmd(tr resource.Transitioner, schema resource.ResourceSchema, ctx *agentcli.AppContext) *cobra.Command {
+func makeTransitionCmd(tr resource.Transitioner, schema resource.ResourceSchema, ctx *agentops.AppContext) *cobra.Command {
 	return &cobra.Command{
 		Use:   "transition <id> <action>",
 		Short: fmt.Sprintf("Transition a %s to a new state", schema.Kind),
@@ -212,7 +212,7 @@ func makeTransitionCmd(tr resource.Transitioner, schema resource.ResourceSchema,
 }
 
 // BuildRoot creates a root command with global flags and auto-generated resource commands.
-func BuildRoot(spec RootSpec, reg *resource.Registry, ctx *agentcli.AppContext) *cobra.Command {
+func BuildRoot(spec RootSpec, reg *resource.Registry, ctx *agentops.AppContext) *cobra.Command {
 	root := &cobra.Command{
 		Use:          spec.Use,
 		Short:        spec.Short,
@@ -257,5 +257,5 @@ func ExecuteRoot(root *cobra.Command, args []string) int {
 		fmt.Fprintln(os.Stderr, err.Error())
 		return resolveCode(err)
 	}
-	return agentcli.ExitSuccess
+	return agentops.ExitSuccess
 }

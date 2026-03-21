@@ -3,7 +3,7 @@ package cobrax
 import (
 	"testing"
 
-	agentcli "github.com/gh-xj/agentops"
+	agentops "github.com/gh-xj/agentops"
 	"github.com/gh-xj/agentops/resource"
 	"github.com/spf13/cobra"
 )
@@ -26,7 +26,7 @@ func (m *mockResource) Schema() resource.ResourceSchema {
 	}
 }
 
-func (m *mockResource) Create(ctx *agentcli.AppContext, slug string, opts map[string]string) (*resource.Record, error) {
+func (m *mockResource) Create(ctx *agentops.AppContext, slug string, opts map[string]string) (*resource.Record, error) {
 	return &resource.Record{
 		Kind:   "mock",
 		ID:     "mock-001",
@@ -34,13 +34,13 @@ func (m *mockResource) Create(ctx *agentcli.AppContext, slug string, opts map[st
 	}, nil
 }
 
-func (m *mockResource) List(ctx *agentcli.AppContext, filter resource.Filter) ([]resource.Record, error) {
+func (m *mockResource) List(ctx *agentops.AppContext, filter resource.Filter) ([]resource.Record, error) {
 	return []resource.Record{
 		{Kind: "mock", ID: "mock-001", Fields: map[string]any{"id": "mock-001", "name": "test", "status": "active"}},
 	}, nil
 }
 
-func (m *mockResource) Get(ctx *agentcli.AppContext, id string) (*resource.Record, error) {
+func (m *mockResource) Get(ctx *agentops.AppContext, id string) (*resource.Record, error) {
 	return &resource.Record{
 		Kind:   "mock",
 		ID:     id,
@@ -53,7 +53,7 @@ type mockDeleterResource struct {
 	mockResource
 }
 
-func (m *mockDeleterResource) Delete(ctx *agentcli.AppContext, id string) error {
+func (m *mockDeleterResource) Delete(ctx *agentops.AppContext, id string) error {
 	return nil
 }
 
@@ -69,19 +69,19 @@ func (m *mockFullResource) Schema() resource.ResourceSchema {
 	return s
 }
 
-func (m *mockFullResource) Validate(ctx *agentcli.AppContext, id string) (*agentcli.DoctorReport, error) {
-	return &agentcli.DoctorReport{SchemaVersion: "1", OK: true}, nil
+func (m *mockFullResource) Validate(ctx *agentops.AppContext, id string) (*agentops.DoctorReport, error) {
+	return &agentops.DoctorReport{SchemaVersion: "1", OK: true}, nil
 }
 
-func (m *mockFullResource) Delete(ctx *agentcli.AppContext, id string) error {
+func (m *mockFullResource) Delete(ctx *agentops.AppContext, id string) error {
 	return nil
 }
 
-func (m *mockFullResource) Sync(ctx *agentcli.AppContext, id string) error {
+func (m *mockFullResource) Sync(ctx *agentops.AppContext, id string) error {
 	return nil
 }
 
-func (m *mockFullResource) Transition(ctx *agentcli.AppContext, id string, action string) (*resource.Record, error) {
+func (m *mockFullResource) Transition(ctx *agentops.AppContext, id string, action string) (*resource.Record, error) {
 	return &resource.Record{
 		Kind:   "full",
 		ID:     id,
@@ -114,7 +114,7 @@ func TestGenerateCommands(t *testing.T) {
 	root := &cobra.Command{Use: "test"}
 	root.PersistentFlags().String("json", "", "JSON field selection")
 	root.PersistentFlags().String("jq", "", "jq expression")
-	ctx := agentcli.NewAppContext(nil)
+	ctx := agentops.NewAppContext(nil)
 
 	GenerateResourceCommands(reg, root, ctx)
 
@@ -141,7 +141,7 @@ func TestGenerateOptionalCommands(t *testing.T) {
 		root := &cobra.Command{Use: "test"}
 		root.PersistentFlags().String("json", "", "JSON field selection")
 		root.PersistentFlags().String("jq", "", "jq expression")
-		ctx := agentcli.NewAppContext(nil)
+		ctx := agentops.NewAppContext(nil)
 
 		GenerateResourceCommands(reg, root, ctx)
 
@@ -167,7 +167,7 @@ func TestGenerateOptionalCommands(t *testing.T) {
 		root := &cobra.Command{Use: "test"}
 		root.PersistentFlags().String("json", "", "JSON field selection")
 		root.PersistentFlags().String("jq", "", "jq expression")
-		ctx := agentcli.NewAppContext(nil)
+		ctx := agentops.NewAppContext(nil)
 
 		GenerateResourceCommands(reg, root, ctx)
 
@@ -185,7 +185,7 @@ func TestGenerateOptionalCommands(t *testing.T) {
 		root := &cobra.Command{Use: "test"}
 		root.PersistentFlags().String("json", "", "JSON field selection")
 		root.PersistentFlags().String("jq", "", "jq expression")
-		ctx := agentcli.NewAppContext(nil)
+		ctx := agentops.NewAppContext(nil)
 
 		GenerateResourceCommands(reg, root, ctx)
 
@@ -205,7 +205,7 @@ func TestBuildRootHasGlobalFlags(t *testing.T) {
 		Short: "A test app",
 	}
 	reg := resource.NewRegistry()
-	ctx := agentcli.NewAppContext(nil)
+	ctx := agentops.NewAppContext(nil)
 
 	root := BuildRoot(spec, reg, ctx)
 
@@ -225,7 +225,7 @@ func TestExecuteRootReturnsExitCode(t *testing.T) {
 			{
 				Use:   "ping",
 				Short: "Ping command",
-				Run: func(*agentcli.AppContext, []string) error {
+				Run: func(*agentops.AppContext, []string) error {
 					return nil
 				},
 			},
@@ -233,13 +233,13 @@ func TestExecuteRootReturnsExitCode(t *testing.T) {
 	}
 	reg := resource.NewRegistry()
 	reg.Register(&mockResource{})
-	ctx := agentcli.NewAppContext(nil)
+	ctx := agentops.NewAppContext(nil)
 
 	root := BuildRoot(spec, reg, ctx)
 
 	// Running with unknown command should return usage error
 	code := ExecuteRoot(root, []string{"nonexistent"})
-	if code != agentcli.ExitUsage {
-		t.Fatalf("expected exit code %d for unknown command, got %d", agentcli.ExitUsage, code)
+	if code != agentops.ExitUsage {
+		t.Fatalf("expected exit code %d for unknown command, got %d", agentops.ExitUsage, code)
 	}
 }

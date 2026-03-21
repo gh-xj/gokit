@@ -7,7 +7,7 @@ import (
 	"strings"
 	"text/tabwriter"
 
-	agentcli "github.com/gh-xj/agentops"
+	agentops "github.com/gh-xj/agentops"
 	"github.com/gh-xj/agentops/resource"
 	"github.com/itchyny/gojq"
 )
@@ -145,7 +145,7 @@ func renderTSV(w io.Writer, records []resource.Record, schema resource.ResourceS
 }
 
 // RenderDoctorReport renders a DoctorReport as JSON or table.
-func RenderDoctorReport(w io.Writer, report agentcli.DoctorReport, jsonMode bool) error {
+func RenderDoctorReport(w io.Writer, report agentops.DoctorReport, jsonMode bool) error {
 	if jsonMode {
 		enc := json.NewEncoder(w)
 		enc.SetIndent("", "  ")

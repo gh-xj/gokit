@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	agentcli "github.com/gh-xj/agentops"
+	agentops "github.com/gh-xj/agentops"
 	"github.com/gh-xj/agentops/dal"
 	"github.com/gh-xj/agentops/resource"
 )
@@ -57,10 +57,10 @@ func (e *realExec) RunInDir(dir, name string, args ...string) (string, error)   
 func (e *realExec) RunOsascript(script string) string                           { return "" }
 func (e *realExec) Which(cmd string) bool                                       { return false }
 
-func newTestResource(t *testing.T) (*ProjectResource, *agentcli.AppContext) {
+func newTestResource(t *testing.T) (*ProjectResource, *agentops.AppContext) {
 	t.Helper()
 	pr := New(&realFS{}, &realExec{})
-	ctx := agentcli.NewAppContext(context.Background())
+	ctx := agentops.NewAppContext(context.Background())
 	return pr, ctx
 }
 

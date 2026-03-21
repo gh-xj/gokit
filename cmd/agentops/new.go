@@ -3,12 +3,12 @@ package main
 import (
 	"fmt"
 
-	agentcli "github.com/gh-xj/agentops"
+	agentops "github.com/gh-xj/agentops"
 	"github.com/gh-xj/agentops/resource"
 	"github.com/spf13/cobra"
 )
 
-func newNewCmd(reg *resource.Registry, ctx *agentcli.AppContext) *cobra.Command {
+func newNewCmd(reg *resource.Registry, ctx *agentops.AppContext) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "new <name>",
 		Short: "Create a new project (alias for project create)",
