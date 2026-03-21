@@ -1,0 +1,22 @@
+categories:
+  active: [open, in_progress, blocked]
+  completed: [resolved, closed_no_action]
+
+initial: open
+
+transitions:
+  start:
+    from: open
+    to: in_progress
+  block:
+    from: [open, in_progress]
+    to: blocked
+  unblock:
+    from: blocked
+    to: in_progress
+  resolve:
+    from: [in_progress, blocked]
+    to: resolved
+  close_no_action:
+    from: [open, blocked]
+    to: closed_no_action
