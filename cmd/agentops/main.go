@@ -1,0 +1,51 @@
+package main
+
+import (
+	"context"
+	"os"
+
+	agentcli "github.com/gh-xj/agentcli-go"
+	"github.com/gh-xj/agentcli-go/cobrax"
+	"github.com/gh-xj/agentcli-go/dal"
+	"github.com/gh-xj/agentcli-go/resource"
+	caseresource "github.com/gh-xj/agentcli-go/resource/case"
+	projectresource "github.com/gh-xj/agentcli-go/resource/project"
+	slotresource "github.com/gh-xj/agentcli-go/resource/slot"
+	"github.com/gh-xj/agentcli-go/strategy"
+)
+
+var appMeta = agentcli.AppMeta{
+	Name:    "agentops",
+	Version: "dev",
+	Commit:  "none",
+	Date:    "unknown",
+}
+
+func main() {
+	ctx := agentcli.NewAppContext(context.Background())
+	fs := dal.NewFileSystem()
+	exec := dal.NewExecutor()
+
+	// Strategy loading is optional (commands like "new" don't need it).
+	strat, _ := strategy.Discover(".")
+
+	reg := resource.NewRegistry()
+	reg.Register(caseresource.New(fs, exec, strat))
+	reg.Register(slotresource.New(fs, exec))
+	reg.Register(projectresource.New(fs, exec))
+
+	root := cobrax.BuildRoot(cobrax.RootSpec{
+		Use:   "agentops",
+		Short: "Agent operations toolkit",
+		Meta:  appMeta,
+	}, reg, ctx)
+
+	root.AddCommand(newInitCmd(fs))
+	root.AddCommand(newDoctorCmd(reg, ctx))
+	root.AddCommand(newNewCmd(reg, ctx))
+	root.AddCommand(newVersionCmd())
+	root.AddCommand(newLoopCmd())
+	root.AddCommand(newLoopServerCmd())
+
+	os.Exit(cobrax.ExecuteRoot(root, os.Args[1:]))
+}
