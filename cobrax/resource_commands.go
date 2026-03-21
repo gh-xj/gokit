@@ -17,6 +17,8 @@ import (
 //   - If Deleter: remove
 //   - If Syncer: sync
 //   - If Transitioner: transition
+//   - If Doctor: doctor
+//   - If Pruner: prune
 func GenerateResourceCommands(reg *resource.Registry, root *cobra.Command, ctx *agentops.AppContext) {
 	for _, res := range reg.All() {
 		schema := res.Schema()
@@ -48,6 +50,16 @@ func GenerateResourceCommands(reg *resource.Registry, root *cobra.Command, ctx *
 		// Optional: transition
 		if tr, ok := res.(resource.Transitioner); ok {
 			nounCmd.AddCommand(makeTransitionCmd(tr, schema, ctx))
+		}
+
+		// Optional: doctor
+		if doc, ok := res.(resource.Doctor); ok {
+			nounCmd.AddCommand(makeDoctorCmd(doc, schema, ctx))
+		}
+
+		// Optional: prune
+		if pr, ok := res.(resource.Pruner); ok {
+			nounCmd.AddCommand(makePruneCmd(pr, schema, ctx))
 		}
 
 		root.AddCommand(nounCmd)
@@ -209,6 +221,45 @@ func makeTransitionCmd(tr resource.Transitioner, schema resource.ResourceSchema,
 			return RenderRecords(cmd.OutOrStdout(), records, schema, mode, fields, jqExpr)
 		},
 	}
+}
+
+func makeDoctorCmd(doc resource.Doctor, schema resource.ResourceSchema, ctx *agentops.AppContext) *cobra.Command {
+	return &cobra.Command{
+		Use:   "doctor",
+		Short: fmt.Sprintf("Run health checks on %s resources", schema.Kind),
+		Args:  cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			checks, err := doc.Doctor(ctx)
+			if err != nil {
+				return err
+			}
+			jsonFields, _ := cmd.Flags().GetString("json")
+			jqExpr, _ := cmd.Flags().GetString("jq")
+			jsonMode := jsonFields != "" || jqExpr != ""
+			return RenderDoctorChecks(cmd.OutOrStdout(), checks, jsonMode)
+		},
+	}
+}
+
+func makePruneCmd(pr resource.Pruner, schema resource.ResourceSchema, ctx *agentops.AppContext) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "prune",
+		Short: fmt.Sprintf("Clean up stale %s resources", schema.Kind),
+		Args:  cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			confirm, _ := cmd.Flags().GetBool("confirm")
+			results, err := pr.Prune(ctx, confirm)
+			if err != nil {
+				return err
+			}
+			jsonFields, _ := cmd.Flags().GetString("json")
+			jqExpr, _ := cmd.Flags().GetString("jq")
+			jsonMode := jsonFields != "" || jqExpr != ""
+			return RenderPruneResults(cmd.OutOrStdout(), results, jsonMode, confirm)
+		},
+	}
+	cmd.Flags().Bool("confirm", false, "actually remove (dry-run by default)")
+	return cmd
 }
 
 // BuildRoot creates a root command with global flags and auto-generated resource commands.

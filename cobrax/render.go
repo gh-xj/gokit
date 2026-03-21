@@ -169,6 +169,63 @@ func RenderDoctorReport(w io.Writer, report agentops.DoctorReport, jsonMode bool
 	return tw.Flush()
 }
 
+// RenderDoctorChecks renders doctor checks as JSON or a table.
+func RenderDoctorChecks(w io.Writer, checks []resource.DoctorCheck, jsonMode bool) error {
+	if jsonMode {
+		enc := json.NewEncoder(w)
+		enc.SetIndent("", "  ")
+		return enc.Encode(checks)
+	}
+
+	if len(checks) == 0 {
+		fmt.Fprintln(w, "no active slots found")
+		return nil
+	}
+
+	tw := tabwriter.NewWriter(w, 0, 4, 2, ' ', 0)
+	for _, c := range checks {
+		tag := "[OK]  "
+		switch c.Severity {
+		case "warn":
+			tag = "[WARN]"
+		case "err":
+			tag = "[ERR] "
+		}
+		fmt.Fprintf(tw, "%s\t%s:\t%s\n", tag, c.Name, c.Message)
+	}
+	return tw.Flush()
+}
+
+// RenderPruneResults renders prune results as JSON or a table.
+func RenderPruneResults(w io.Writer, results []resource.PruneResult, jsonMode bool, confirmed bool) error {
+	if jsonMode {
+		enc := json.NewEncoder(w)
+		enc.SetIndent("", "  ")
+		return enc.Encode(results)
+	}
+
+	if len(results) == 0 {
+		fmt.Fprintln(w, "nothing to prune")
+		return nil
+	}
+
+	for _, r := range results {
+		switch r.Action {
+		case "removed":
+			fmt.Fprintf(w, "removed %s (%s)\n", r.Name, r.Path)
+		case "would_remove":
+			fmt.Fprintf(w, "would remove %s (%s)\n", r.Name, r.Path)
+		case "skipped":
+			fmt.Fprintf(w, "skipped %s: %s\n", r.Name, r.Reason)
+		}
+	}
+
+	if !confirmed {
+		fmt.Fprintln(w, "\ndry-run: pass --confirm to actually remove")
+	}
+	return nil
+}
+
 // buildEnvelope constructs a JSON envelope from records.
 func buildEnvelope(records []resource.Record, schema resource.ResourceSchema, fields []string) Envelope {
 	data := make([]map[string]any, 0, len(records))

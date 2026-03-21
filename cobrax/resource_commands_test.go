@@ -89,6 +89,25 @@ func (m *mockFullResource) Transition(ctx *agentops.AppContext, id string, actio
 	}, nil
 }
 
+// mockDoctorPrunerResource implements Resource + Doctor + Pruner.
+type mockDoctorPrunerResource struct {
+	mockResource
+}
+
+func (m *mockDoctorPrunerResource) Schema() resource.ResourceSchema {
+	s := m.mockResource.Schema()
+	s.Kind = "healthcheck"
+	return s
+}
+
+func (m *mockDoctorPrunerResource) Doctor(ctx *agentops.AppContext) ([]resource.DoctorCheck, error) {
+	return []resource.DoctorCheck{{Name: "test", Status: "ok", Message: "all good", Severity: "ok"}}, nil
+}
+
+func (m *mockDoctorPrunerResource) Prune(ctx *agentops.AppContext, confirm bool) ([]resource.PruneResult, error) {
+	return []resource.PruneResult{{Name: "test", Path: "/tmp/test", Action: "would_remove"}}, nil
+}
+
 func findSubCommand(cmd *cobra.Command, path ...string) *cobra.Command {
 	current := cmd
 	for _, name := range path {
@@ -197,6 +216,50 @@ func TestGenerateOptionalCommands(t *testing.T) {
 			}
 		}
 	})
+}
+
+func TestGenerateDoctorPruneCommands(t *testing.T) {
+	reg := resource.NewRegistry()
+	reg.Register(&mockDoctorPrunerResource{})
+
+	root := &cobra.Command{Use: "test"}
+	root.PersistentFlags().String("json", "", "JSON field selection")
+	root.PersistentFlags().String("jq", "", "jq expression")
+	ctx := agentops.NewAppContext(nil)
+
+	GenerateResourceCommands(reg, root, ctx)
+
+	// Should have "doctor" and "prune" commands
+	doctorCmd := findSubCommand(root, "healthcheck", "doctor")
+	if doctorCmd == nil {
+		t.Fatal("expected 'healthcheck doctor' subcommand to exist")
+	}
+
+	pruneCmd := findSubCommand(root, "healthcheck", "prune")
+	if pruneCmd == nil {
+		t.Fatal("expected 'healthcheck prune' subcommand to exist")
+	}
+
+	// Verify prune has --confirm flag
+	confirmFlag := pruneCmd.Flags().Lookup("confirm")
+	if confirmFlag == nil {
+		t.Fatal("expected prune to have --confirm flag")
+	}
+
+	// Verify base resource without Doctor/Pruner does NOT have these commands
+	reg2 := resource.NewRegistry()
+	reg2.Register(&mockResource{})
+	root2 := &cobra.Command{Use: "test2"}
+	root2.PersistentFlags().String("json", "", "")
+	root2.PersistentFlags().String("jq", "", "")
+	GenerateResourceCommands(reg2, root2, ctx)
+
+	if findSubCommand(root2, "mock", "doctor") != nil {
+		t.Fatal("expected 'mock doctor' NOT to exist for non-Doctor resource")
+	}
+	if findSubCommand(root2, "mock", "prune") != nil {
+		t.Fatal("expected 'mock prune' NOT to exist for non-Pruner resource")
+	}
 }
 
 func TestBuildRootHasGlobalFlags(t *testing.T) {
