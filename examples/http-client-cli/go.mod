@@ -1,8 +1,8 @@
-module github.com/gh-xj/agentcli-go/examples/http-client-cli
+module github.com/gh-xj/agentops/examples/http-client-cli
 
 go 1.25.5
 
-require github.com/gh-xj/agentcli-go v0.2.0
+require github.com/gh-xj/agentops v0.2.0
 
 require (
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect

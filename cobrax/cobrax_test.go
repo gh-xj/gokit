@@ -3,7 +3,7 @@ package cobrax
 import (
 	"testing"
 
-	agentcli "github.com/gh-xj/agentcli-go"
+	agentcli "github.com/gh-xj/agentops"
 )
 
 func TestNewRootHasRequiredPersistentFlags(t *testing.T) {

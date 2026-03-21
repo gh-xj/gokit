@@ -6,8 +6,8 @@ import (
 	"strings"
 	"testing"
 
-	agentcli "github.com/gh-xj/agentcli-go"
-	"github.com/gh-xj/agentcli-go/resource"
+	agentcli "github.com/gh-xj/agentops"
+	"github.com/gh-xj/agentops/resource"
 )
 
 func testSchema() resource.ResourceSchema {

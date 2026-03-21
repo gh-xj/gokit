@@ -5,7 +5,7 @@ import (
 	"os"
 	"strings"
 
-	agentcli "github.com/gh-xj/agentcli-go"
+	agentcli "github.com/gh-xj/agentops"
 	"github.com/spf13/cobra"
 )
 

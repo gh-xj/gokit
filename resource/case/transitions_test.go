@@ -4,7 +4,7 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/gh-xj/agentcli-go/strategy"
+	"github.com/gh-xj/agentops/strategy"
 )
 
 func defaultTransitionsConfig() strategy.TransitionsConfig {

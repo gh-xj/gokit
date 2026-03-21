@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/gh-xj/agentcli-go/strategy"
+	"github.com/gh-xj/agentops/strategy"
 )
 
 func TestDiscoverFromSubdir(t *testing.T) {

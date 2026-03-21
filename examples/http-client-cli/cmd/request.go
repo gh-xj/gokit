@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/gh-xj/agentcli-go"
+	"github.com/gh-xj/agentops"
 )
 
 func init() {

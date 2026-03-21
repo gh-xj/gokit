@@ -11,7 +11,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/gh-xj/agentcli-go/internal/dogfood"
+	"github.com/gh-xj/agentops/internal/dogfood"
 )
 
 func TestRunRequiresEventFile(t *testing.T) {
@@ -26,13 +26,13 @@ func TestRunQueueRetryWithIssueURLDoesNotCreateDuplicate(t *testing.T) {
 	ledger := &fakeLedger{
 		findRecord: dogfood.LedgerRecord{
 			Fingerprint: "fp",
-			IssueURL:    "https://github.com/gh-xj/agentcli-go/issues/101",
+			IssueURL:    "https://github.com/gh-xj/agentops/issues/101",
 			Status:      string(dogfood.ActionQueueRetry),
 		},
 		findOK: true,
 	}
 	publisher := &fakePublisher{results: []publishResult{{
-		url:    "https://github.com/gh-xj/agentcli-go/issues/101",
+		url:    "https://github.com/gh-xj/agentops/issues/101",
 		action: dogfood.PublishActionCommented,
 	}}}
 	markers := &memoryIdempotencyStore{values: map[string]string{}}
@@ -61,7 +61,7 @@ func TestRunQueueRetryWithIssueURLDoesNotCreateDuplicate(t *testing.T) {
 	if len(publisher.calls) != 1 {
 		t.Fatalf("expected one publish call, got %d", len(publisher.calls))
 	}
-	if publisher.calls[0].ExistingIssueURL != "https://github.com/gh-xj/agentcli-go/issues/101" {
+	if publisher.calls[0].ExistingIssueURL != "https://github.com/gh-xj/agentops/issues/101" {
 		t.Fatalf("expected comment path to existing issue, got %q", publisher.calls[0].ExistingIssueURL)
 	}
 }
@@ -70,8 +70,8 @@ func TestRunUsesIdempotencyMarkerWhenLedgerAppendFails(t *testing.T) {
 	eventPath := writeEventFixture(t)
 	markerStore := &memoryIdempotencyStore{values: map[string]string{}}
 	publisher := &fakePublisher{results: []publishResult{
-		{url: "https://github.com/gh-xj/agentcli-go/issues/222", action: dogfood.PublishActionCreated},
-		{url: "https://github.com/gh-xj/agentcli-go/issues/222", action: dogfood.PublishActionCommented},
+		{url: "https://github.com/gh-xj/agentops/issues/222", action: dogfood.PublishActionCreated},
+		{url: "https://github.com/gh-xj/agentops/issues/222", action: dogfood.PublishActionCommented},
 	}}
 
 	firstLedger := &fakeLedger{appendErr: errors.New("disk full")}
@@ -109,7 +109,7 @@ func TestRunUsesIdempotencyMarkerWhenLedgerAppendFails(t *testing.T) {
 		t.Fatalf("expected exactly one idempotency marker entry, got %d", len(markerStore.values))
 	}
 	for _, gotURL := range markerStore.values {
-		if gotURL != "https://github.com/gh-xj/agentcli-go/issues/222" {
+		if gotURL != "https://github.com/gh-xj/agentops/issues/222" {
 			t.Fatalf("expected marker issue url to be persisted, got %q", gotURL)
 		}
 	}
@@ -124,7 +124,7 @@ func TestRunUsesIdempotencyMarkerWhenLedgerAppendFails(t *testing.T) {
 	if publisher.calls[0].ExistingIssueURL != "" {
 		t.Fatalf("expected first call to create issue, got existing issue %q", publisher.calls[0].ExistingIssueURL)
 	}
-	if publisher.calls[1].ExistingIssueURL != "https://github.com/gh-xj/agentcli-go/issues/222" {
+	if publisher.calls[1].ExistingIssueURL != "https://github.com/gh-xj/agentops/issues/222" {
 		t.Fatalf("expected second call to comment existing issue from marker, got %q", publisher.calls[1].ExistingIssueURL)
 	}
 }
@@ -144,7 +144,7 @@ func TestFileIdempotencyStoreConcurrentPutDoesNotLoseUpdates(t *testing.T) {
 			<-start
 			errs <- store.Put(
 				fmt.Sprintf("fp-%03d", i),
-				fmt.Sprintf("https://github.com/gh-xj/agentcli-go/issues/%d", 1000+i),
+				fmt.Sprintf("https://github.com/gh-xj/agentops/issues/%d", 1000+i),
 			)
 		}(i)
 	}
@@ -161,7 +161,7 @@ func TestFileIdempotencyStoreConcurrentPutDoesNotLoseUpdates(t *testing.T) {
 
 	for i := range writers {
 		key := fmt.Sprintf("fp-%03d", i)
-		wantURL := fmt.Sprintf("https://github.com/gh-xj/agentcli-go/issues/%d", 1000+i)
+		wantURL := fmt.Sprintf("https://github.com/gh-xj/agentops/issues/%d", 1000+i)
 		gotURL, ok, err := store.Get(key)
 		if err != nil {
 			t.Fatalf("get %q returned error: %v", key, err)
@@ -188,7 +188,7 @@ func TestFileIdempotencyStorePutRecoversStaleLock(t *testing.T) {
 		t.Fatalf("mark lock file stale: %v", err)
 	}
 
-	if err := store.Put("fp-stale", "https://github.com/gh-xj/agentcli-go/issues/999"); err != nil {
+	if err := store.Put("fp-stale", "https://github.com/gh-xj/agentops/issues/999"); err != nil {
 		t.Fatalf("put with stale lock should recover, got error: %v", err)
 	}
 
@@ -199,7 +199,7 @@ func TestFileIdempotencyStorePutRecoversStaleLock(t *testing.T) {
 	if !ok {
 		t.Fatalf("expected marker to exist after stale lock recovery")
 	}
-	if gotURL != "https://github.com/gh-xj/agentcli-go/issues/999" {
+	if gotURL != "https://github.com/gh-xj/agentops/issues/999" {
 		t.Fatalf("unexpected marker url: got %q", gotURL)
 	}
 }

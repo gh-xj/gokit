@@ -6,12 +6,12 @@ func TestResolveRepoUsesOverrideFirst(t *testing.T) {
 	r := Router{MinConfidence: 0.75}
 
 	res := r.Resolve(RouteInput{
-		OverrideRepo: "gh-xj/agentcli-go",
+		OverrideRepo: "gh-xj/agentops",
 		CWD:          "/tmp/x",
 		GitRemote:    "git@github.com:other/repo.git",
 	})
 
-	if res.Repo != "gh-xj/agentcli-go" {
+	if res.Repo != "gh-xj/agentops" {
 		t.Fatalf("expected override repo, got %q", res.Repo)
 	}
 	if res.Confidence != 1.0 {
@@ -50,10 +50,10 @@ func TestResolveRepoParsesGitRemoteWithTrailingSlash(t *testing.T) {
 	r := Router{MinConfidence: 0.75}
 
 	res := r.Resolve(RouteInput{
-		GitRemote: "https://github.com/gh-xj/agentcli-go/",
+		GitRemote: "https://github.com/gh-xj/agentops/",
 	})
 
-	if res.Repo != "gh-xj/agentcli-go" {
+	if res.Repo != "gh-xj/agentops" {
 		t.Fatalf("expected inferred repo, got %q", res.Repo)
 	}
 	if res.Pending {
@@ -68,10 +68,10 @@ func TestResolveRepoParsesSSHRemoteWithPort(t *testing.T) {
 	r := Router{MinConfidence: 0.75}
 
 	res := r.Resolve(RouteInput{
-		GitRemote: "ssh://git@github.com:2222/gh-xj/agentcli-go.git",
+		GitRemote: "ssh://git@github.com:2222/gh-xj/agentops.git",
 	})
 
-	if res.Repo != "gh-xj/agentcli-go" {
+	if res.Repo != "gh-xj/agentops" {
 		t.Fatalf("expected inferred repo, got %q", res.Repo)
 	}
 	if res.Pending {
@@ -86,7 +86,7 @@ func TestResolveRepoRejectsNonGitHubHTTPSHost(t *testing.T) {
 	r := Router{MinConfidence: 0.75}
 
 	res := r.Resolve(RouteInput{
-		GitRemote: "https://mirror.example.com/github.com/gh-xj/agentcli-go.git",
+		GitRemote: "https://mirror.example.com/github.com/gh-xj/agentops.git",
 		CWD:       "/tmp/worktree/fallback-repo",
 	})
 
@@ -105,7 +105,7 @@ func TestResolveRepoRejectsNonGitHubSSHHost(t *testing.T) {
 	r := Router{MinConfidence: 0.75}
 
 	res := r.Resolve(RouteInput{
-		GitRemote: "ssh://git@mirror.example.com:2222/github.com/gh-xj/agentcli-go.git",
+		GitRemote: "ssh://git@mirror.example.com:2222/github.com/gh-xj/agentops.git",
 		CWD:       "/tmp/worktree/fallback-repo",
 	})
 

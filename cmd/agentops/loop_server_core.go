@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"os"
 
-	agentcli "github.com/gh-xj/agentcli-go"
+	agentcli "github.com/gh-xj/agentops"
 )
 
 func runLoopServer(_ []string) int {

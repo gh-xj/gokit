@@ -44,7 +44,7 @@ func CheckOnboardingInstallReadiness(repoRoot string) []Finding {
 }
 
 func containsInstallStep(s string) bool {
-	return strings.Contains(s, "go install github.com/gh-xj/agentcli-go/cmd/agentcli@") ||
+	return strings.Contains(s, "go install github.com/gh-xj/agentops/cmd/agentcli@") ||
 		(strings.Contains(s, "brew") && strings.Contains(s, "install agentcli"))
 }
 

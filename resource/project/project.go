@@ -7,9 +7,9 @@ import (
 	"strings"
 	"text/template"
 
-	agentcli "github.com/gh-xj/agentcli-go"
-	"github.com/gh-xj/agentcli-go/dal"
-	"github.com/gh-xj/agentcli-go/resource"
+	agentcli "github.com/gh-xj/agentops"
+	"github.com/gh-xj/agentops/dal"
+	"github.com/gh-xj/agentops/resource"
 )
 
 // ProjectResource implements the Resource interface for scaffolding new Go CLI

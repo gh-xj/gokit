@@ -1,6 +1,6 @@
 package resource
 
-import agentcli "github.com/gh-xj/agentcli-go"
+import agentcli "github.com/gh-xj/agentops"
 
 // Record is a generic representation of a resource instance.
 type Record struct {

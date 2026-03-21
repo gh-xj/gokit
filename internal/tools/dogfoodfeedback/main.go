@@ -13,7 +13,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gh-xj/agentcli-go/internal/dogfood"
+	"github.com/gh-xj/agentops/internal/dogfood"
 )
 
 const defaultLedgerPath = ".docs/dogfood/ledger.json"

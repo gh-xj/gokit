@@ -3,7 +3,7 @@ package caseresource
 import (
 	"fmt"
 
-	"github.com/gh-xj/agentcli-go/strategy"
+	"github.com/gh-xj/agentops/strategy"
 )
 
 // StateMachine enforces valid state transitions loaded from strategy config.

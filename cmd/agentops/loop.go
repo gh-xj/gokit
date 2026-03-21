@@ -8,10 +8,10 @@ import (
 	"os"
 	"time"
 
-	harnessloop "github.com/gh-xj/agentcli-go/internal/harnessloop"
-	"github.com/gh-xj/agentcli-go/internal/loopapi"
-	harness "github.com/gh-xj/agentcli-go/tools/harness"
-	loopcommands "github.com/gh-xj/agentcli-go/tools/harness/commands"
+	harnessloop "github.com/gh-xj/agentops/internal/harnessloop"
+	"github.com/gh-xj/agentops/internal/loopapi"
+	harness "github.com/gh-xj/agentops/tools/harness"
+	loopcommands "github.com/gh-xj/agentops/tools/harness/commands"
 )
 
 func runLoop(args []string) int {

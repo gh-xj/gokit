@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"regexp"
 
-	agentcli "github.com/gh-xj/agentcli-go"
-	"github.com/gh-xj/agentcli-go/dal"
-	"github.com/gh-xj/agentcli-go/resource"
+	agentcli "github.com/gh-xj/agentops"
+	"github.com/gh-xj/agentops/dal"
+	"github.com/gh-xj/agentops/resource"
 )
 
 var slotNamePattern = regexp.MustCompile(`^[a-z][a-z0-9-]*$`)

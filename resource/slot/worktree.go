@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/gh-xj/agentcli-go/dal"
+	"github.com/gh-xj/agentops/dal"
 )
 
 // slotInfo holds parsed information about a git worktree slot.

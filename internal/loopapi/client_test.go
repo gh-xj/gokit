@@ -6,8 +6,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	harnessloop "github.com/gh-xj/agentcli-go/internal/harnessloop"
-	harness "github.com/gh-xj/agentcli-go/tools/harness"
+	harnessloop "github.com/gh-xj/agentops/internal/harnessloop"
+	harness "github.com/gh-xj/agentops/tools/harness"
 )
 
 func TestRunClientSuccess(t *testing.T) {

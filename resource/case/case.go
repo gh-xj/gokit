@@ -7,10 +7,10 @@ import (
 	"strings"
 	"time"
 
-	agentcli "github.com/gh-xj/agentcli-go"
-	"github.com/gh-xj/agentcli-go/dal"
-	"github.com/gh-xj/agentcli-go/resource"
-	"github.com/gh-xj/agentcli-go/strategy"
+	agentcli "github.com/gh-xj/agentops"
+	"github.com/gh-xj/agentops/dal"
+	"github.com/gh-xj/agentops/resource"
+	"github.com/gh-xj/agentops/strategy"
 )
 
 var slugPattern = regexp.MustCompile(`^[a-z0-9][a-z0-9-]*$`)

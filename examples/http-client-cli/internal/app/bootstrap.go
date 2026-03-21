@@ -4,7 +4,7 @@ import (
 	"os"
 	"slices"
 
-	"github.com/gh-xj/agentcli-go/dal"
+	"github.com/gh-xj/agentops/dal"
 )
 
 func Bootstrap() {

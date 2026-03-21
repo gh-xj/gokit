@@ -7,7 +7,7 @@ import (
 	"os"
 	"path/filepath"
 
-	harnessloop "github.com/gh-xj/agentcli-go/internal/harnessloop"
+	harnessloop "github.com/gh-xj/agentops/internal/harnessloop"
 )
 
 type benchSummary struct {

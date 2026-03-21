@@ -7,9 +7,9 @@ import (
 	"path/filepath"
 	"testing"
 
-	agentcli "github.com/gh-xj/agentcli-go"
-	"github.com/gh-xj/agentcli-go/dal"
-	"github.com/gh-xj/agentcli-go/resource"
+	agentcli "github.com/gh-xj/agentops"
+	"github.com/gh-xj/agentops/dal"
+	"github.com/gh-xj/agentops/resource"
 )
 
 // setupGitRepo creates a temporary git repo with an initial commit.

@@ -6,8 +6,8 @@ import (
 	"os"
 	"sort"
 
-	"github.com/gh-xj/agentcli-go"
-	"github.com/gh-xj/agentcli-go/cobrax"
+	"github.com/gh-xj/agentops"
+	"github.com/gh-xj/agentops/cobrax"
 )
 
 type command struct {

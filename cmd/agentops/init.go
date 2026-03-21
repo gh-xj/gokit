@@ -3,8 +3,8 @@ package main
 import (
 	"fmt"
 
-	"github.com/gh-xj/agentcli-go/dal"
-	"github.com/gh-xj/agentcli-go/strategy"
+	"github.com/gh-xj/agentops/dal"
+	"github.com/gh-xj/agentops/strategy"
 	"github.com/spf13/cobra"
 )
 

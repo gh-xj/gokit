@@ -1,4 +1,4 @@
-module github.com/gh-xj/agentcli-go
+module github.com/gh-xj/agentops
 
 go 1.25.5
 

@@ -4,14 +4,14 @@ import (
 	"context"
 	"os"
 
-	agentcli "github.com/gh-xj/agentcli-go"
-	"github.com/gh-xj/agentcli-go/cobrax"
-	"github.com/gh-xj/agentcli-go/dal"
-	"github.com/gh-xj/agentcli-go/resource"
-	caseresource "github.com/gh-xj/agentcli-go/resource/case"
-	projectresource "github.com/gh-xj/agentcli-go/resource/project"
-	slotresource "github.com/gh-xj/agentcli-go/resource/slot"
-	"github.com/gh-xj/agentcli-go/strategy"
+	agentcli "github.com/gh-xj/agentops"
+	"github.com/gh-xj/agentops/cobrax"
+	"github.com/gh-xj/agentops/dal"
+	"github.com/gh-xj/agentops/resource"
+	caseresource "github.com/gh-xj/agentops/resource/case"
+	projectresource "github.com/gh-xj/agentops/resource/project"
+	slotresource "github.com/gh-xj/agentops/resource/slot"
+	"github.com/gh-xj/agentops/strategy"
 )
 
 var appMeta = agentcli.AppMeta{

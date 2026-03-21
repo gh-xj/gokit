@@ -23,7 +23,7 @@ func (f *fakeCommandRunner) Run(name string, args ...string) (string, error) {
 }
 
 func TestPublisherCreateIssueWhenNoExistingOpenRecord(t *testing.T) {
-	runner := &fakeCommandRunner{out: "https://github.com/gh-xj/agentcli-go/issues/123\n"}
+	runner := &fakeCommandRunner{out: "https://github.com/gh-xj/agentops/issues/123\n"}
 	pub := Publisher{Runner: runner}
 
 	url, action, err := pub.Publish(PublishInput{
@@ -60,7 +60,7 @@ func TestPublisherCommentsExistingIssueWhenExistingIssueProvided(t *testing.T) {
 		Repo:             "gh-xj/agentcli-go",
 		Title:            "dogfood: runtime error",
 		Body:             "details",
-		ExistingIssueURL: "https://github.com/gh-xj/agentcli-go/issues/123",
+		ExistingIssueURL: "https://github.com/gh-xj/agentops/issues/123",
 	})
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
@@ -68,13 +68,13 @@ func TestPublisherCommentsExistingIssueWhenExistingIssueProvided(t *testing.T) {
 	if action != PublishActionCommented {
 		t.Fatalf("expected action %q, got %q", PublishActionCommented, action)
 	}
-	if url != "https://github.com/gh-xj/agentcli-go/issues/123" {
+	if url != "https://github.com/gh-xj/agentops/issues/123" {
 		t.Fatalf("expected existing issue url, got %q", url)
 	}
 	if len(runner.calls) != 1 {
 		t.Fatalf("expected exactly one runner call, got %d", len(runner.calls))
 	}
-	wantArgs := []string{"issue", "comment", "https://github.com/gh-xj/agentcli-go/issues/123", "--body", "details"}
+	wantArgs := []string{"issue", "comment", "https://github.com/gh-xj/agentops/issues/123", "--body", "details"}
 	if !reflect.DeepEqual(runner.calls[0].args, wantArgs) {
 		t.Fatalf("unexpected args:\n got: %#v\nwant: %#v", runner.calls[0].args, wantArgs)
 	}

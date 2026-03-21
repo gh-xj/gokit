@@ -9,9 +9,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	harnessloop "github.com/gh-xj/agentcli-go/internal/harnessloop"
-	harness "github.com/gh-xj/agentcli-go/tools/harness"
-	loopcommands "github.com/gh-xj/agentcli-go/tools/harness/commands"
+	harnessloop "github.com/gh-xj/agentops/internal/harnessloop"
+	harness "github.com/gh-xj/agentops/tools/harness"
+	loopcommands "github.com/gh-xj/agentops/tools/harness/commands"
 )
 
 type RunRequest struct {

@@ -3,8 +3,8 @@ package cobrax
 import (
 	"testing"
 
-	agentcli "github.com/gh-xj/agentcli-go"
-	"github.com/gh-xj/agentcli-go/resource"
+	agentcli "github.com/gh-xj/agentops"
+	"github.com/gh-xj/agentops/resource"
 	"github.com/spf13/cobra"
 )
 

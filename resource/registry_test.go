@@ -3,7 +3,7 @@ package resource
 import (
 	"testing"
 
-	agentcli "github.com/gh-xj/agentcli-go"
+	agentcli "github.com/gh-xj/agentops"
 )
 
 // mockResource implements the Resource interface for testing.

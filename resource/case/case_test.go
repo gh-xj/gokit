@@ -7,9 +7,9 @@ import (
 	"strings"
 	"testing"
 
-	agentcli "github.com/gh-xj/agentcli-go"
-	"github.com/gh-xj/agentcli-go/dal"
-	"github.com/gh-xj/agentcli-go/strategy"
+	agentcli "github.com/gh-xj/agentops"
+	"github.com/gh-xj/agentops/dal"
+	"github.com/gh-xj/agentops/strategy"
 )
 
 // setupTestProject creates a temp dir with .agentops/ bootstrapped and storage set to in-repo.
