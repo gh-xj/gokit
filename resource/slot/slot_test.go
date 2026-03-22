@@ -18,6 +18,12 @@ func setupGitRepo(t *testing.T) string {
 	t.Helper()
 	tmp := t.TempDir()
 
+	// Create a subdirectory for the repo so sibling copies work
+	repoDir := filepath.Join(tmp, "myrepo")
+	if err := os.MkdirAll(repoDir, 0o755); err != nil {
+		t.Fatalf("mkdir: %v", err)
+	}
+
 	cmds := [][]string{
 		{"git", "init", "-b", "main"},
 		{"git", "config", "user.email", "test@test.com"},
@@ -26,13 +32,13 @@ func setupGitRepo(t *testing.T) string {
 	}
 	for _, args := range cmds {
 		cmd := exec.Command(args[0], args[1:]...)
-		cmd.Dir = tmp
+		cmd.Dir = repoDir
 		out, err := cmd.CombinedOutput()
 		if err != nil {
 			t.Fatalf("setup %v: %s: %v", args, out, err)
 		}
 	}
-	return tmp
+	return repoDir
 }
 
 // newTestResource creates a SlotResource wired to real dal implementations
@@ -141,24 +147,39 @@ func TestSlotCreate(t *testing.T) {
 		t.Errorf("record ID = %q, want %q", rec.ID, "feat-login")
 	}
 
-	// Check .slot marker exists at worktree path
-	wtPath, ok := rec.Fields["path"].(string)
-	if !ok || wtPath == "" {
+	// Check copy path exists as a sibling
+	copyPath, ok := rec.Fields["path"].(string)
+	if !ok || copyPath == "" {
 		t.Fatal("record missing path field")
 	}
-	slotFile := filepath.Join(wtPath, ".slot")
-	data, err := os.ReadFile(slotFile)
-	if err != nil {
-		t.Fatalf(".slot marker not found: %v", err)
-	}
-	if string(data) != "feat-login" {
-		t.Errorf(".slot content = %q, want %q", string(data), "feat-login")
+	if _, err := os.Stat(copyPath); err != nil {
+		t.Fatalf("copy path does not exist: %v", err)
 	}
 
-	// Check branch field
+	// Verify .git exists in copy
+	if _, err := os.Stat(filepath.Join(copyPath, ".git")); err != nil {
+		t.Fatalf(".git not found in copy: %v", err)
+	}
+
+	// Check branch field is the bare slot name
 	branch, ok := rec.Fields["branch"].(string)
 	if !ok || branch == "" {
 		t.Fatal("record missing branch field")
+	}
+	if branch != "feat-login" {
+		t.Errorf("branch = %q, want %q", branch, "feat-login")
+	}
+
+	// Verify the branch was actually checked out
+	actualBranch := currentBranch(t, copyPath)
+	if actualBranch != "feat-login" {
+		t.Errorf("actual branch = %q, want %q", actualBranch, "feat-login")
+	}
+
+	// Verify cases directory was created
+	casesDir := filepath.Join(copyPath, "slots", "feat-login", "cases")
+	if _, err := os.Stat(casesDir); err != nil {
+		t.Fatalf("cases dir not created: %v", err)
 	}
 }
 
@@ -190,6 +211,34 @@ func TestSlotNameValidation(t *testing.T) {
 		}
 		if !tc.wantErr && err != nil {
 			t.Errorf("Create(%q): unexpected error: %v", tc.name, err)
+		}
+	}
+}
+
+// --- ValidateSlotName standalone ---
+
+func TestValidateSlotName(t *testing.T) {
+	cases := []struct {
+		name    string
+		wantErr bool
+	}{
+		{"good", false},
+		{"a-b-c", false},
+		{"abc123", false},
+		{"", true},
+		{"  ", true},
+		{"-bad", true},
+		{"UPPER", true},
+		{"has_underscore", true},
+		{"123abc", true},
+	}
+	for _, tc := range cases {
+		err := ValidateSlotName(tc.name)
+		if tc.wantErr && err == nil {
+			t.Errorf("ValidateSlotName(%q): expected error", tc.name)
+		}
+		if !tc.wantErr && err != nil {
+			t.Errorf("ValidateSlotName(%q): unexpected error: %v", tc.name, err)
 		}
 	}
 }
@@ -264,16 +313,16 @@ func TestSlotDelete(t *testing.T) {
 		t.Fatalf("Create: %v", err)
 	}
 
-	wtPath := created.Fields["path"].(string)
+	copyPath := created.Fields["path"].(string)
 
 	err = sr.Delete(ctx, "doomed")
 	if err != nil {
 		t.Fatalf("Delete: %v", err)
 	}
 
-	// Verify worktree directory is gone
-	if _, err := os.Stat(wtPath); err == nil {
-		t.Error("worktree path still exists after Delete")
+	// Verify copy directory is gone
+	if _, err := os.Stat(copyPath); err == nil {
+		t.Error("copy path still exists after Delete")
 	}
 
 	// Verify it's not in list anymore
@@ -288,10 +337,94 @@ func TestSlotDelete(t *testing.T) {
 	}
 }
 
-// --- Config loading ---
+// --- CopyRepo ---
 
-func TestConfigLoadDefaults(t *testing.T) {
-	// No config file exists — all defaults
+func TestCopyRepo(t *testing.T) {
+	repoDir := setupGitRepo(t)
+	fs := &realFS{}
+	ex := &realExec{}
+
+	dst := filepath.Join(filepath.Dir(repoDir), "myrepo-copy")
+
+	err := CopyRepo(fs, ex, repoDir, dst)
+	if err != nil {
+		t.Fatalf("CopyRepo: %v", err)
+	}
+
+	// Verify .git exists in copy
+	if _, err := os.Stat(filepath.Join(dst, ".git")); err != nil {
+		t.Fatalf(".git missing in copy: %v", err)
+	}
+
+	// CopyRepo should fail if dst already exists
+	err = CopyRepo(fs, ex, repoDir, dst)
+	if err == nil {
+		t.Error("CopyRepo to existing dst should fail")
+	}
+}
+
+// --- SlotNameFromPath ---
+
+func TestSlotNameFromPath(t *testing.T) {
+	cases := []struct {
+		path    string
+		prefix  string
+		want    string
+		wantErr bool
+	}{
+		{"/tmp/myrepo-alpha", "myrepo", "alpha", false},
+		{"/tmp/myrepo-feat-login", "myrepo", "feat-login", false},
+		{"/tmp/other-thing", "myrepo", "", true},
+		{"/tmp/myrepo-", "myrepo", "", true},
+	}
+	for _, tc := range cases {
+		got, err := SlotNameFromPath(tc.path, tc.prefix)
+		if tc.wantErr {
+			if err == nil {
+				t.Errorf("SlotNameFromPath(%q, %q): expected error", tc.path, tc.prefix)
+			}
+			continue
+		}
+		if err != nil {
+			t.Errorf("SlotNameFromPath(%q, %q): %v", tc.path, tc.prefix, err)
+			continue
+		}
+		if got != tc.want {
+			t.Errorf("SlotNameFromPath(%q, %q) = %q, want %q", tc.path, tc.prefix, got, tc.want)
+		}
+	}
+}
+
+// --- IsDirty ---
+
+func TestIsDirty(t *testing.T) {
+	t.Run("clean repo", func(t *testing.T) {
+		repoDir := setupGitRepo(t)
+		dirty, err := IsDirty(&realExec{}, repoDir)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if dirty {
+			t.Fatal("fresh repo should not be dirty")
+		}
+	})
+
+	t.Run("dirty repo", func(t *testing.T) {
+		repoDir := setupGitRepo(t)
+		os.WriteFile(filepath.Join(repoDir, "dirty.txt"), []byte("x"), 0o644)
+		dirty, err := IsDirty(&realExec{}, repoDir)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if !dirty {
+			t.Fatal("repo with untracked file should be dirty")
+		}
+	})
+}
+
+// --- Config loading (copy-based) ---
+
+func TestConfigLoadCopyBased(t *testing.T) {
 	tmp := t.TempDir()
 	repoRoot := filepath.Join(tmp, "myrepo")
 	os.MkdirAll(filepath.Join(repoRoot, ".agentops"), 0o755)
@@ -303,17 +436,8 @@ func TestConfigLoadDefaults(t *testing.T) {
 	if cfg.BaseBranch != "main" {
 		t.Errorf("BaseBranch = %q, want %q", cfg.BaseBranch, "main")
 	}
-	if cfg.BranchPrefix != "slot" {
-		t.Errorf("BranchPrefix = %q, want %q", cfg.BranchPrefix, "slot")
-	}
-	if cfg.MarkerFile != ".slot" {
-		t.Errorf("MarkerFile = %q, want %q", cfg.MarkerFile, ".slot")
-	}
-	if cfg.WorktreePrefix != "myrepo" {
-		t.Errorf("WorktreePrefix = %q, want %q", cfg.WorktreePrefix, "myrepo")
-	}
-	if len(cfg.Slots) != 0 {
-		t.Errorf("Slots = %v, want empty", cfg.Slots)
+	if cfg.CopyPrefix != "myrepo" {
+		t.Errorf("CopyPrefix = %q, want %q", cfg.CopyPrefix, "myrepo")
 	}
 }
 
@@ -323,11 +447,8 @@ func TestConfigLoadFromFile(t *testing.T) {
 	agentopsDir := filepath.Join(repoRoot, ".agentops")
 	os.MkdirAll(agentopsDir, 0o755)
 
-	yaml := `slots: [alpha, beta, gamma]
-base_branch: develop
-branch_prefix: wt
-marker_file: .marker
-worktree_prefix: custom
+	yaml := `base_branch: develop
+copy_prefix: custom
 `
 	os.WriteFile(filepath.Join(agentopsDir, "slot.yaml"), []byte(yaml), 0o644)
 
@@ -335,120 +456,75 @@ worktree_prefix: custom
 	if err != nil {
 		t.Fatalf("LoadSlotConfig: %v", err)
 	}
-	if len(cfg.Slots) != 3 {
-		t.Errorf("Slots len = %d, want 3", len(cfg.Slots))
-	}
 	if cfg.BaseBranch != "develop" {
 		t.Errorf("BaseBranch = %q, want %q", cfg.BaseBranch, "develop")
 	}
-	if cfg.BranchPrefix != "wt" {
-		t.Errorf("BranchPrefix = %q, want %q", cfg.BranchPrefix, "wt")
-	}
-	if cfg.MarkerFile != ".marker" {
-		t.Errorf("MarkerFile = %q, want %q", cfg.MarkerFile, ".marker")
-	}
-	if cfg.WorktreePrefix != "custom" {
-		t.Errorf("WorktreePrefix = %q, want %q", cfg.WorktreePrefix, "custom")
+	if cfg.CopyPrefix != "custom" {
+		t.Errorf("CopyPrefix = %q, want %q", cfg.CopyPrefix, "custom")
 	}
 }
 
-func TestConfigValidateSlotName(t *testing.T) {
+func TestConfigCopyPath(t *testing.T) {
 	cfg := &SlotConfig{
-		Slots:        []string{"alpha", "beta"},
-		BranchPrefix: "slot",
-		MarkerFile:   ".slot",
-		BaseBranch:   "main",
+		CopyPrefix: "myrepo",
+		BaseBranch: "main",
 	}
 
-	if err := cfg.ValidateSlotName("alpha"); err != nil {
-		t.Errorf("unexpected error for valid slot: %v", err)
-	}
-	if err := cfg.ValidateSlotName("gamma"); err == nil {
-		t.Error("expected error for invalid slot name")
-	}
-	if err := cfg.ValidateSlotName(""); err == nil {
-		t.Error("expected error for empty slot name")
+	got := cfg.CopyPath("/home/user/repos", "alpha")
+	want := "/home/user/repos/myrepo-alpha"
+	if got != want {
+		t.Errorf("CopyPath = %q, want %q", got, want)
 	}
 }
 
-func TestConfigSlotPaths(t *testing.T) {
-	cfg := &SlotConfig{
-		WorktreePrefix: "myrepo",
-		BranchPrefix:   "slot",
-		MarkerFile:     ".slot",
-		BaseBranch:     "main",
-	}
+// --- CommitsBehind ---
 
-	repoRoot := "/home/user/repos/myrepo"
-	paths := cfg.SlotPaths(repoRoot, "alpha")
-
-	expectedWT := "/home/user/repos/worktrees/myrepo-alpha"
-	if paths.WorktreePath != expectedWT {
-		t.Errorf("WorktreePath = %q, want %q", paths.WorktreePath, expectedWT)
-	}
-	if paths.Branch != "slot/alpha" {
-		t.Errorf("Branch = %q, want %q", paths.Branch, "slot/alpha")
-	}
-	expectedMarker := "/home/user/repos/worktrees/myrepo-alpha/.slot"
-	if paths.MarkerPath != expectedMarker {
-		t.Errorf("MarkerPath = %q, want %q", paths.MarkerPath, expectedMarker)
-	}
-	if paths.Name != "alpha" {
-		t.Errorf("Name = %q, want %q", paths.Name, "alpha")
-	}
-}
-
-func TestConfigMarkerFiles(t *testing.T) {
-	cfg := &SlotConfig{MarkerFile: ".slot"}
-	mf := cfg.MarkerFiles()
-	if !mf[".slot"] {
-		t.Error("expected .slot in marker files")
-	}
-	if mf[".other"] {
-		t.Error("unexpected .other in marker files")
-	}
-}
-
-// --- Git operations ---
-
-func TestWorktreeListEmpty(t *testing.T) {
+func TestCommitsBehind(t *testing.T) {
 	repoDir := setupGitRepo(t)
-	entries, err := WorktreeList(&realExec{}, repoDir)
+	ex := &realExec{}
+
+	// Create a branch for testing
+	cmd := exec.Command("git", "checkout", "-b", "test-behind")
+	cmd.Dir = repoDir
+	if out, err := cmd.CombinedOutput(); err != nil {
+		t.Fatalf("checkout: %s %v", out, err)
+	}
+
+	// Go back to main
+	cmd = exec.Command("git", "checkout", "main")
+	cmd.Dir = repoDir
+	if out, err := cmd.CombinedOutput(); err != nil {
+		t.Fatalf("checkout main: %s %v", out, err)
+	}
+
+	// Initially 0 behind
+	n, err := CommitsBehind(ex, repoDir, "test-behind", "main")
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(entries) != 1 {
-		t.Fatalf("expected 1 entry (main worktree), got %d", len(entries))
+	if n != 0 {
+		t.Fatalf("expected 0 behind, got %d", n)
+	}
+
+	// Add commits on main
+	for i := 0; i < 3; i++ {
+		c := exec.Command("git", "commit", "--allow-empty", "-m", "advance main")
+		c.Dir = repoDir
+		if out, err := c.CombinedOutput(); err != nil {
+			t.Fatalf("commit: %s %v", out, err)
+		}
+	}
+
+	n, err = CommitsBehind(ex, repoDir, "test-behind", "main")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if n != 3 {
+		t.Fatalf("expected 3 behind, got %d", n)
 	}
 }
 
-func TestParseWorktreeList(t *testing.T) {
-	raw := `worktree /home/user/repo
-HEAD abc123
-branch refs/heads/main
-
-worktree /home/user/worktrees/slot-alpha
-HEAD def456
-branch refs/heads/slot/alpha
-
-`
-	entries := parseWorktreeList(raw)
-	if len(entries) != 2 {
-		t.Fatalf("expected 2 entries, got %d", len(entries))
-	}
-	if entries[0].Path != "/home/user/repo" {
-		t.Errorf("entry[0].Path = %q", entries[0].Path)
-	}
-	if entries[0].Branch != "main" {
-		t.Errorf("entry[0].Branch = %q, want %q", entries[0].Branch, "main")
-	}
-	if entries[1].Branch != "slot/alpha" {
-		t.Errorf("entry[1].Branch = %q, want %q", entries[1].Branch, "slot/alpha")
-	}
-	if entries[0].Head != "abc123" {
-		t.Errorf("entry[0].Head = %q, want %q", entries[0].Head, "abc123")
-	}
-}
+// --- GitError ---
 
 func TestGitError(t *testing.T) {
 	ge := &GitError{
@@ -463,131 +539,6 @@ func TestGitError(t *testing.T) {
 	}
 	if ge.Unwrap() != os.ErrNotExist {
 		t.Error("Unwrap should return underlying error")
-	}
-}
-
-func TestIsDirtyExcluding(t *testing.T) {
-	t.Run("clean repo", func(t *testing.T) {
-		repoDir := setupGitRepo(t)
-		dirty, err := IsDirtyExcluding(&realExec{}, repoDir, nil)
-		if err != nil {
-			t.Fatal(err)
-		}
-		if dirty {
-			t.Fatal("fresh repo should not be dirty")
-		}
-	})
-
-	t.Run("dirty repo", func(t *testing.T) {
-		repoDir := setupGitRepo(t)
-		os.WriteFile(filepath.Join(repoDir, "dirty.txt"), []byte("x"), 0o644)
-		dirty, err := IsDirtyExcluding(&realExec{}, repoDir, nil)
-		if err != nil {
-			t.Fatal(err)
-		}
-		if !dirty {
-			t.Fatal("repo with untracked file should be dirty")
-		}
-	})
-
-	t.Run("excluded file only", func(t *testing.T) {
-		repoDir := setupGitRepo(t)
-		os.WriteFile(filepath.Join(repoDir, ".slot"), []byte("alpha"), 0o644)
-		exclude := map[string]bool{".slot": true}
-		dirty, err := IsDirtyExcluding(&realExec{}, repoDir, exclude)
-		if err != nil {
-			t.Fatal(err)
-		}
-		if dirty {
-			t.Fatal("repo with only excluded file should not be dirty")
-		}
-	})
-
-	t.Run("excluded plus dirty", func(t *testing.T) {
-		repoDir := setupGitRepo(t)
-		os.WriteFile(filepath.Join(repoDir, ".slot"), []byte("alpha"), 0o644)
-		os.WriteFile(filepath.Join(repoDir, "real-change.txt"), []byte("y"), 0o644)
-		exclude := map[string]bool{".slot": true}
-		dirty, err := IsDirtyExcluding(&realExec{}, repoDir, exclude)
-		if err != nil {
-			t.Fatal(err)
-		}
-		if !dirty {
-			t.Fatal("repo with non-excluded changes should be dirty")
-		}
-	})
-}
-
-func TestCommitsBehind(t *testing.T) {
-	repoDir := setupGitRepo(t)
-	ex := &realExec{}
-
-	// Create a worktree with a slot branch
-	wtPath := filepath.Join(filepath.Dir(repoDir), "wt-behind")
-	if err := WorktreeAdd(ex, repoDir, wtPath, "slot/behind-test"); err != nil {
-		t.Fatal(err)
-	}
-	defer WorktreeRemove(ex, repoDir, wtPath)
-
-	mainBranch := currentBranch(t, repoDir)
-
-	// Initially 0 behind
-	n, err := CommitsBehind(ex, repoDir, "slot/behind-test", mainBranch)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if n != 0 {
-		t.Fatalf("expected 0 behind, got %d", n)
-	}
-
-	// Add commits on the main branch
-	for i := 0; i < 3; i++ {
-		c := exec.Command("git", "commit", "--allow-empty", "-m", "advance main")
-		c.Dir = repoDir
-		if out, err := c.CombinedOutput(); err != nil {
-			t.Fatalf("commit: %s %v", out, err)
-		}
-	}
-
-	n, err = CommitsBehind(ex, repoDir, "slot/behind-test", mainBranch)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if n != 3 {
-		t.Fatalf("expected 3 behind, got %d", n)
-	}
-}
-
-func TestListPrefixBranches(t *testing.T) {
-	repoDir := setupGitRepo(t)
-	ex := &realExec{}
-
-	branches, err := ListPrefixBranches(ex, repoDir, "slot")
-	if err != nil {
-		t.Fatal(err)
-	}
-	if len(branches) != 0 {
-		t.Fatalf("expected 0 slot branches, got %d", len(branches))
-	}
-
-	// Create two slot worktrees
-	wt1 := filepath.Join(filepath.Dir(repoDir), "wt-slot1")
-	wt2 := filepath.Join(filepath.Dir(repoDir), "wt-slot2")
-	if err := WorktreeAdd(ex, repoDir, wt1, "slot/alpha"); err != nil {
-		t.Fatal(err)
-	}
-	defer WorktreeRemove(ex, repoDir, wt1)
-	if err := WorktreeAdd(ex, repoDir, wt2, "slot/beta"); err != nil {
-		t.Fatal(err)
-	}
-	defer WorktreeRemove(ex, repoDir, wt2)
-
-	branches, err = ListPrefixBranches(ex, repoDir, "slot")
-	if err != nil {
-		t.Fatal(err)
-	}
-	if len(branches) != 2 {
-		t.Fatalf("expected 2 slot branches, got %d: %v", len(branches), branches)
 	}
 }
 
@@ -630,8 +581,8 @@ func TestDoctorDirtySlot(t *testing.T) {
 	}
 
 	// Make the slot dirty
-	wtPath := rec.Fields["path"].(string)
-	os.WriteFile(filepath.Join(wtPath, "uncommitted.txt"), []byte("dirty"), 0o644)
+	copyPath := rec.Fields["path"].(string)
+	os.WriteFile(filepath.Join(copyPath, "uncommitted.txt"), []byte("dirty"), 0o644)
 
 	checks, err := sr.Doctor(ctx)
 	if err != nil {
@@ -649,52 +600,30 @@ func TestDoctorDirtySlot(t *testing.T) {
 	}
 }
 
-func TestDoctorMissingMarker(t *testing.T) {
-	repoDir := setupGitRepo(t)
-	sr, ctx := newTestResource(t, repoDir)
-
-	rec, err := sr.Create(ctx, "nomarker", nil)
-	if err != nil {
-		t.Fatalf("Create: %v", err)
-	}
-
-	// Remove the marker file
-	wtPath := rec.Fields["path"].(string)
-	os.Remove(filepath.Join(wtPath, ".slot"))
-
-	checks, err := sr.Doctor(ctx)
-	if err != nil {
-		t.Fatalf("Doctor: %v", err)
-	}
-
-	found := false
-	for _, c := range checks {
-		if c.Name == "nomarker" && c.Status == "missing_marker" {
-			found = true
-		}
-	}
-	if !found {
-		t.Errorf("expected missing_marker check, got: %+v", checks)
-	}
-}
-
 func TestDoctorBehindBase(t *testing.T) {
 	repoDir := setupGitRepo(t)
 	sr, ctx := newTestResource(t, repoDir)
 
-	_, err := sr.Create(ctx, "behind", nil)
+	rec, err := sr.Create(ctx, "behind", nil)
 	if err != nil {
 		t.Fatalf("Create: %v", err)
 	}
 
-	// Advance main branch
-	mainBranch := currentBranch(t, repoDir)
-	_ = mainBranch
+	// Advance main branch inside the copy so the slot branch falls behind.
+	copyPath := rec.Fields["path"].(string)
+	advanceCmds := [][]string{
+		{"git", "checkout", "main"},
+	}
 	for i := 0; i < 2; i++ {
-		c := exec.Command("git", "commit", "--allow-empty", "-m", "advance main")
-		c.Dir = repoDir
+		advanceCmds = append(advanceCmds, []string{"git", "commit", "--allow-empty", "-m", "advance main"})
+	}
+	advanceCmds = append(advanceCmds, []string{"git", "checkout", "behind"})
+
+	for _, args := range advanceCmds {
+		c := exec.Command(args[0], args[1:]...)
+		c.Dir = copyPath
 		if out, err := c.CombinedOutput(); err != nil {
-			t.Fatalf("commit: %s %v", out, err)
+			t.Fatalf("%v: %s %v", args, out, err)
 		}
 	}
 
@@ -711,38 +640,6 @@ func TestDoctorBehindBase(t *testing.T) {
 	}
 	if !found {
 		t.Errorf("expected behind check, got: %+v", checks)
-	}
-}
-
-func TestDoctorStaleBranch(t *testing.T) {
-	repoDir := setupGitRepo(t)
-	sr, ctx := newTestResource(t, repoDir)
-	ex := &realExec{}
-
-	// Create a slot, then remove the worktree but leave the branch
-	rec, err := sr.Create(ctx, "stale", nil)
-	if err != nil {
-		t.Fatalf("Create: %v", err)
-	}
-	wtPath := rec.Fields["path"].(string)
-
-	// Force-remove the worktree directory without cleaning up the branch
-	WorktreeRemove(ex, repoDir, wtPath)
-	// The branch slot/stale still exists but has no worktree
-
-	checks, err := sr.Doctor(ctx)
-	if err != nil {
-		t.Fatalf("Doctor: %v", err)
-	}
-
-	found := false
-	for _, c := range checks {
-		if c.Status == "stale_branch" {
-			found = true
-		}
-	}
-	if !found {
-		t.Errorf("expected stale_branch check, got: %+v", checks)
 	}
 }
 
@@ -773,7 +670,7 @@ func TestPruneDryRun(t *testing.T) {
 		t.Errorf("expected would_remove for pruneme, got: %+v", results)
 	}
 
-	// Verify worktree still exists (dry-run)
+	// Verify copy still exists (dry-run)
 	records, err := sr.List(ctx, nil)
 	if err != nil {
 		t.Fatalf("List: %v", err)
@@ -808,7 +705,7 @@ func TestPruneConfirm(t *testing.T) {
 		t.Errorf("expected removed for pruneme, got: %+v", results)
 	}
 
-	// Verify worktree is gone
+	// Verify copy is gone
 	records, err := sr.List(ctx, nil)
 	if err != nil {
 		t.Fatalf("List: %v", err)
@@ -828,8 +725,8 @@ func TestPruneSkipsDirty(t *testing.T) {
 	}
 
 	// Make it dirty
-	wtPath := rec.Fields["path"].(string)
-	os.WriteFile(filepath.Join(wtPath, "uncommitted.txt"), []byte("dirty"), 0o644)
+	copyPath := rec.Fields["path"].(string)
+	os.WriteFile(filepath.Join(copyPath, "uncommitted.txt"), []byte("dirty"), 0o644)
 
 	results, err := sr.Prune(ctx, true)
 	if err != nil {
@@ -846,7 +743,7 @@ func TestPruneSkipsDirty(t *testing.T) {
 		t.Errorf("expected skipped for dirty slot, got: %+v", results)
 	}
 
-	// Verify worktree still exists
+	// Verify copy still exists
 	records, err := sr.List(ctx, nil)
 	if err != nil {
 		t.Fatalf("List: %v", err)
@@ -856,23 +753,36 @@ func TestPruneSkipsDirty(t *testing.T) {
 	}
 }
 
-// --- ReadMarker ---
+// --- FindRepoRoot ---
 
-func TestReadMarker(t *testing.T) {
-	dir := t.TempDir()
+func TestFindRepoRoot(t *testing.T) {
+	repoDir := setupGitRepo(t)
 	fs := &realFS{}
 
-	// Missing marker
-	got := ReadMarker(fs, dir, ".slot")
-	if got != "" {
-		t.Errorf("ReadMarker (missing) = %q, want empty", got)
+	// From repo root
+	root, err := FindRepoRoot(fs, repoDir)
+	if err != nil {
+		t.Fatalf("FindRepoRoot: %v", err)
+	}
+	if root != repoDir {
+		t.Errorf("FindRepoRoot = %q, want %q", root, repoDir)
 	}
 
-	// Write marker and read it back
-	os.WriteFile(filepath.Join(dir, ".slot"), []byte("alpha\n"), 0o644)
-	got = ReadMarker(fs, dir, ".slot")
-	if got != "alpha" {
-		t.Errorf("ReadMarker = %q, want %q", got, "alpha")
+	// From subdirectory
+	subDir := filepath.Join(repoDir, "subdir")
+	os.MkdirAll(subDir, 0o755)
+	root, err = FindRepoRoot(fs, subDir)
+	if err != nil {
+		t.Fatalf("FindRepoRoot from subdir: %v", err)
+	}
+	if root != repoDir {
+		t.Errorf("FindRepoRoot from subdir = %q, want %q", root, repoDir)
+	}
+
+	// Non-repo
+	_, err = FindRepoRoot(fs, t.TempDir())
+	if err == nil {
+		t.Error("FindRepoRoot in non-repo should fail")
 	}
 }
 
