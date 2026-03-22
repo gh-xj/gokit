@@ -4,9 +4,10 @@ Defines the slot/claim system for working directory isolation.
 
 ## Slot Identity
 
-- Each slot has a `.slot` marker file at its worktree root
-- Content: exactly the slot name (no newline)
+- Each slot is a directory copy whose identity is extracted from its basename minus the copy_prefix
 - Slot names must match the pattern declared in strategy's slot.md
+- Example: if copy_prefix is `myproject` and directory is `myproject-maxwell`, slot name is `maxwell`
+- If copy_prefix is empty, the repo dirname is used at runtime
 
 ## Claim Protocol
 
@@ -17,10 +18,11 @@ Defines the slot/claim system for working directory isolation.
 
 ## Slot Lifecycle
 
-- Create: `casectl slot create <name>` → git worktree + .slot marker
-- List: `casectl slot list` → enumerate worktrees with .slot markers
-- Remove: `casectl slot remove <name>` → safety check + worktree removal
-- Sync: update slot worktree from main branch (at explicit boundaries only)
+- Create: `casectl slot create <name>` → cp -r directory copy at `<parent>/<prefix>-<name>`
+- List: `casectl slot list` → enumerate copy directories matching the prefix pattern
+- Remove: `casectl slot remove <name>` → safety check + copy directory removal
+- Sync: update slot copy from main branch (at explicit boundaries only)
+- Branch naming: bare slot name (e.g. `maxwell`), no `slot/` prefix
 
 Project-specific wrappers may automate these actions, but dispatcher-managed case flows must stay consistent with this contract.
 
@@ -28,5 +30,5 @@ Project-specific wrappers may automate these actions, but dispatcher-managed cas
 
 Project's `.agentops/slot.md` declares:
 - Naming pattern (regex)
-- Path convention (worktree location)
+- Path convention: `<parent>/<prefix>-<name>` (copy placed alongside the source repo)
 - Sync policy (when to pull from main)

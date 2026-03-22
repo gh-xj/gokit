@@ -1,3 +1,2 @@
 base_branch: main
-branch_prefix: slot
-marker_file: .slot
+copy_prefix: ""
